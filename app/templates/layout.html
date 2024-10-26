@@ -7,13 +7,63 @@
     <meta name="author" content="">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.13/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>joblet.</title>
-    <link rel="icon" href="../static/tools-svgrepo-com.svg" type="image/x-icon">
-    <link rel="shortcut icon" href="../static/tools-svgrepo-com.svg" type="image/x-icon">
+    <title>dealicious.</title>
+    
 </head>
 
 <body data-theme="retro">
     <div class="h-screen w-screen">
+        {% if user.is_authenticated %}
+        <div class="p-4">
+            <div class="navbar bg-accent rounded-lg">
+                <div class="navbar-start">
+                    <a class="btn btn-ghost text-xl text-white">joblet.</a>
+                </div>
+                <div class="navbar-center">
+                    <ul class="menu menu-horizontal px-1 text-white">
+                        <li><a href="{% url 'index' %}">Home</a></li>
+                        <li><a href="{% url 'about' %}">About Us</a></li>
+                        <li><a href="{% url 'profile' %}">Profile</a></li>
+                    </ul>
+                </div>
+                <div class="navbar-end flex gap-4">
+                    <span class="text-white">Bem-vindo, {{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="POST" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-base-200 text-accent">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not user.is_authenticated %}
+            <div class="p-4">
+                <div class="navbar bg-accent rounded-lg">
+                    <div class="navbar-start">
+                        <a class="btn btn-ghost text-xl text-white">joblet.</a>
+                    </div>
+                    <div class="navbar-center">
+                        <ul class="menu menu-horizontal px-1 text-white">
+                            <li><a href="{% url 'index' %}">Home</a></li>
+                            <li><a href="{% url 'about' %}">About Us</a></li>
+                            <li><a href="{% url 'profile' %}">Profile</a></li>
+                        </ul>
+                    </div>
+                    <div class="navbar-end">
+                        <form action="{% url 'login' %}" method="POST" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-base-200 text-accent">
+                                Login
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
         {% block content %}
         {% endblock %}
     </div>

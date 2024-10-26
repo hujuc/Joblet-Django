@@ -58,7 +58,11 @@ def logout_view(request):
     messages.success(request, "Você foi desconectado com sucesso!")
     return redirect('login')
 
+def about(request):
+    return render(request, 'about.html')
 
+def profile(request):
+    return render(request, 'profile.html')
 
 
 
