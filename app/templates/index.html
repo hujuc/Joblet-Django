@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="p-4">
+        {% if user.is_authenticated %}
+            <div class="flex justify-end mb-4">
+                <div class="flex items-center gap-4">
+                    <span class="text-gray-700">Bem-vindo, {{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="POST" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-accent text-white">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Resto do seu conteúdo aqui -->
+        {% if not user.is_authenticated %}
+        <div class="flex justify-end mb-4">
+            <div class="flex items-center gap-4">
+                <form action="{% url 'login' %}" method="POST" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-accent text-white">
+                        Login
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

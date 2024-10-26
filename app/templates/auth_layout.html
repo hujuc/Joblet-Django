@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.13/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>joblet.</title>
+    <link rel="icon" href="../static/tools-svgrepo-com.svg" type="image/x-icon">
+    <link rel="shortcut icon" href="../static/tools-svgrepo-com.svg" type="image/x-icon">
+</head>
+
+<body data-theme="retro">
+
+    <div class="h-screen w-screen">
+        <div class="relative w-full h-screen">
+            <svg id="visual" class="absolute inset-0 w-full h-full z-0" viewBox="0 0 900 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+                <rect x="0" y="0" width="900" height="600" fill="#ece3ca"></rect>
+                <defs>
+                    <linearGradient id="grad1_0" x1="33.3%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="20%" stop-color="#ece3ca" stop-opacity="1"></stop>
+                        <stop offset="80%" stop-color="#ece3ca" stop-opacity="1"></stop>
+                    </linearGradient>
+                </defs>
+                <defs>
+                    <linearGradient id="grad2_0" x1="0%" y1="0%" x2="66.7%" y2="100%">
+                        <stop offset="20%" stop-color="#ece3ca" stop-opacity="1"></stop>
+                        <stop offset="80%" stop-color="#ece3ca" stop-opacity="1"></stop>
+                    </linearGradient>
+                </defs>
+                <g transform="translate(900, 0)">
+                    <path d="M0 243.4C-28.1 229.2 -56.3 215 -84.2 203.3C-112.1 191.5 -139.7 182.1 -164.8 164.8C-189.8 147.4 -212.2 121.9 -224.8 93.1C-237.5 64.3 -240.4 32.2 -243.4 0L0 0Z" fill="#dc8850"></path>
+                </g>
+                <g transform="translate(0, 600)">
+                    <path d="M0 -243.4C32.3 -240.7 64.7 -238 93.1 -224.8C121.6 -211.7 146.2 -188 162.6 -162.6C179.1 -137.2 187.5 -110.1 199.6 -82.7C211.7 -55.3 227.5 -27.6 243.4 0L0 0Z" fill="#dc8850"></path>
+                </g>
+            </svg>
+            <div class="relative z-10 w-12">
+                <a href="{% url 'index' %}" class="text-white">
+                    <button type="submit" class="btn btn-accent w-24 ml-4 mt-4 text-white rounded-xl mx-auto">Go Home</button>
+                </a>
+            </div>
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+</body>
+</html>
