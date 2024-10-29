@@ -37,6 +37,13 @@ def login_view(request):
 def home(request):
     return render(request, 'index.html')
 
+def services(request):
+    return render(request, 'services.html')
+
+def booking(request):
+    return render(request, 'booking.html')
+
+
 def register_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
