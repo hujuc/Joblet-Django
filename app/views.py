@@ -8,6 +8,8 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 
+from .models import Service, Category
+
 logger = logging.getLogger(__name__)
 
 def login_view(request):
@@ -38,7 +40,13 @@ def home(request):
     return render(request, 'index.html')
 
 def services(request):
-    return render(request, 'services.html')
+    tparams = {
+        'title': 'Services',
+        'services': Service.objects.all(),
+        'categories': Category.objects.all(),
+    }
+    return render(request, 'services.html', tparams)
+
 
 def booking(request):
     return render(request, 'booking.html')

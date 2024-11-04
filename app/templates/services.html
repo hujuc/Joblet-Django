@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    
+    <div class="p-4">
+{#    make a bar for filtering#}
+        <div class="bg-base-200 rounded-lg p-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text
+                    text-base-content">Filter</span>
+                </label>
+                <input type="text" placeholder="Search for services" class="input input-bordered mb-4">
+            
+                {# categories #}
+                <div class="relative">
+                    <select class="select select-bordered w-full max-w-xs">
+                        <option value="0">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="select-arrow"></div>
+                </div>
+            
+                {# sort by #}
+                <label class="label">
+                    <span class="label-text
+                    text-base-content">Sort By</span>
+                </label>
+                <div class="relative">
+                    <select class="select select-bordered w-full max-w-xs">
+                        <option value="0">Most Recent</option>
+                        <option value="1">Most Popular</option>
+                        <option value="2">Price: Low to High</option>
+                        <option value="3">Price: High to Low</option>
+                    </select>
+                    <div class="select-arrow"></div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="w-full px-4 py-6 bg-base-300 h-[calc(100vh-140px)] overflow-auto rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for service in services %}
+                    <div class="card bg-base-200 bordered shadow-lg">
+                        <figure>
+                            {% if service.image %}
+                                <img src="{{ service.image.url }}" alt="{{ service.title }}" class="rounded-t-lg">
+                            {% else %}
+                                <img src="https://via.placeholder.com/640x360.png?text=No+Image" alt="{{ service.title }}" class="rounded-t-lg">
+                            {% endif %}
+                        </figure>
+                        <div class="card-body">
+                            <h2 class="card-title
+                            text-lg font-semibold">{{ service.title }}</h2>
+                            <p class="text-base-content">{{ service.description }}</p>
+                            <div class="card-actions">
+                                <button class="btn btn-accent">View</button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
