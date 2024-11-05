@@ -24,18 +24,15 @@
             </div>
             {% if user.is_authenticated %}
                 <div class="navbar-start flex items-center gap-4">
-                    {% if user.is_provider %}
-                        <a class="btn btn-ghost text-xl text-white">joblet.</a>
+                    <a class="btn btn-ghost text-xl text-white">joblet.</a>
                         <ul class="menu menu-horizontal px-1 text-white text-lg">
+                        {% if user.is_provider %}
                             <li><a href="{% url 'services' %}">Services</a></li>
-                        </ul>
-                    {% else %}
-                        <a class="btn btn-ghost text-xl text-white">joblet.</a>
-                        <ul class="menu menu-horizontal px-1 text-white text-lg">
+                        {% else %}
                             <li><a href="{% url 'myservices' %}">My Services</a></li>
                             <li><a href="{% url 'booking' %}">Booking</a></li>
+                        {% endif %}
                         </ul>
-                    {% endif %}
                 </div>
                 <div class="navbar-end flex gap-4">
                     <div class="dropdown dropdown-end ">
