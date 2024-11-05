@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    {% for service in services %}
+    {{ service.title }}
+    {% endfor %}
+{% endblock %}
