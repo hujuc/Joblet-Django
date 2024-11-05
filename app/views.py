@@ -7,8 +7,16 @@ from .forms import CustomUserCreationForm, LoginForm
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
+from .models import Service, Profile
 
 logger = logging.getLogger(__name__)
+
+def myservices(request):
+    # Obtenha o perfil do usuário autenticado
+    user_profile = Profile.objects.get(user=request.user)
+    # Filtre os serviços usando o perfil do usuário como provedor
+    user_services = Service.objects.filter(provider=user_profile)
+    return render(request, 'myservices.html', {'services': user_services})
 
 def login_view(request):
     if request.user.is_authenticated:
