@@ -122,8 +122,10 @@ def logout_view(request):
 def about(request):
     return render(request, 'about.html')
 
-def profile(request):
-    return render(request, 'profile.html')
+def profile(request,user_id):
+    user_profile = Profile.objects.get(user_id=user_id)
+    return render(request, 'profile.html', {'profile': user_profile})
+
 
 
 

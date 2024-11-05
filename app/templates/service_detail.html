@@ -4,7 +4,7 @@
 
     <div class="p-4">
         <div>
-            <a href="{% url 'services' %}" class="btn btn-primary">Back to Services</a>
+            <a href="{% url 'services' service.provider.id %}" class="btn btn-primary text-white">Back to Services</a>
             
 {#            image#}
             {% if service.image %}
@@ -12,6 +12,26 @@
             {% else %}
                 <img src="https://via.placeholder.com/640x360.png?text=No+Image" alt="{{ service.title }}" class="rounded-lg mt-4">
             {% endif %}
+
+            {# profile #}
+            <a class="mt-4 flex gap-4" href="{% url 'profile' service.provider.id %}">
+                <div class="avatar">
+                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                    {% if service.provider.avatar %}
+                        <img src="{{ service.provider.avatar.url }}" alt="{{ service.provider.user }}">
+                    {% else %}
+                        <span class="text-white text-lg font-semibold bg-primary w-full h-full flex items-center justify-center">
+                            {{ service.provider.user.username|slice:":1"|upper }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold">{{ service.provider.user.username }}</h2>
+                </div>
+            </a>
+
             
             <div class="bg-base-200 rounded-lg p-4">
                 <h1 class="text-2xl font-bold">{{ service.title }}</h1>

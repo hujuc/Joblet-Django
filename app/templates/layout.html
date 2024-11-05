@@ -15,24 +15,17 @@
 <div class="h-screen w-screen">
     <div class="p-4 mx-4">
         <div class="navbar bg-primary rounded-lg">
-            <div class="navbar-start flex items-center gap-4">
+            <div class="navbar-start flex gap-4">
                 <a class="btn btn-ghost text-xl text-white">joblet.</a>
-                <div class="form-control flex flex-row">
-                    <input type="text" placeholder="What you want?" class="input w-96 rounded-l-lg rounded-r-[0px]" />
-                    <button class="btn btn-base text-primary rounded-l-[0px]">Search</button>
-                </div>
-            </div>
-            {% if user.is_authenticated %}
-                <div class="navbar-start flex items-center gap-4">
-                    <a class="btn btn-ghost text-xl text-white">joblet.</a>
-                        <ul class="menu menu-horizontal px-1 text-white text-lg">
+        {% if user.is_authenticated %}
+                    <ul class="menu menu-horizontal px-1 text-white text-lg">
                         {% if user.is_provider %}
                             <li><a href="{% url 'services' %}">Services</a></li>
                         {% else %}
                             <li><a href="{% url 'myservices' %}">My Services</a></li>
                             <li><a href="{% url 'booking' %}">Booking</a></li>
                         {% endif %}
-                        </ul>
+                    </ul>
                 </div>
                 <div class="navbar-end flex gap-4">
                     <div class="dropdown dropdown-end ">
@@ -54,6 +47,11 @@
                 </div>
             </div>
         {% else %}
+                <div class="form-control flex flex-row">
+                    <input type="text" placeholder="What you want?" class="input w-96 rounded-l-lg rounded-r-[0px]" />
+                    <button class="btn btn-base text-primary rounded-l-[0px]">Search</button>
+                </div>
+            </div>
             <div class="navbar-end flex gap-2">
                 <form action="{% url 'register' %}" method="POST">
                     {% csrf_token %}
@@ -71,11 +69,9 @@
         {% endif %}
     </div>
 
-    <div class="py-4">
-        <div class="w-full bg-base-300 h-[calc(100vh-140px)] overflow-auto rounded-lg">
-            {% block content %}
-            {% endblock %}
-        </div>
+    <div class="w-full mt-4 bg-base-300 h-[calc(100vh-120px)] overflow-auto rounded-lg">
+        {% block content %}
+        {% endblock %}
     </div>
 </div>
 </body>
