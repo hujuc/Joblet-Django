@@ -90,6 +90,9 @@ def services(request):
     }
     return render(request, 'services.html', context)
 
+def service_detail(request, service_id):
+    service = Service.objects.get(pk=service_id)
+    return render(request, 'service_detail.html', {'service': service})
 
 def booking(request):
     return render(request, 'booking.html')

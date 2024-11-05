@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <div class="p-4">
+        <div>
+            <a href="{% url 'services' %}" class="btn btn-primary">Back to Services</a>
+            
+{#            image#}
+            {% if service.image %}
+                <img src="{{ service.image.url }}" alt="{{ service.title }}" class="rounded-lg mt-4">
+            {% else %}
+                <img src="https://via.placeholder.com/640x360.png?text=No+Image" alt="{{ service.title }}" class="rounded-lg mt-4">
+            {% endif %}
+            
+            <div class="bg-base-200 rounded-lg p-4">
+                <h1 class="text-2xl font-bold">{{ service.title }}</h1>
+                <p class="text-lg text-base-content">{{ service.description }}</p>
+                <p class="text-lg text-base-content">Price: ${{ service.price }}</p>
+                <p class="text-lg text-base-content">Category: {{ service.category }}</p>
+                <p class="text-lg text-base-content">Posted by: {{ service.provider }}</p>
+                <p class="text-lg text-base-content">Posted on: {{ service.created_at }}</p>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

@@ -29,6 +29,7 @@ class Service(models.Model):
     duration = models.DurationField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    image = models.ImageField(upload_to='service_images/', blank=True, null=True)
 
     def __str__(self):
         return self.title
