@@ -1,8 +1,11 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from app.models import Profile
+
 
 class CustomUserCreationForm(UserCreationForm):
+    is_provider = forms.BooleanField(required=False, label="Are you a provider?")
     email = forms.EmailField(required=True)
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
@@ -24,6 +27,10 @@ class CustomUserCreationForm(UserCreationForm):
         user.last_name = self.cleaned_data['last_name']
         if commit:
             user.save()
+            Profile.objects.create(
+                user=user,
+                provider=self.cleaned_data['is_provider']
+            )
         return user
 
 
