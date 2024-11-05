@@ -27,7 +27,7 @@ class Service(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=8, decimal_places=2)
     duration = models.DurationField()
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     image = models.ImageField(upload_to='service_images/', blank=True, null=True)
 

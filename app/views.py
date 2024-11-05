@@ -49,6 +49,9 @@ def login_view(request):
 def home(request):
     return render(request, 'index.html')
 
+def myorders(request):
+    return render(request, 'myorders.html')
+
 def services(request):
     # Get filter parameters from request
     search_query = request.GET.get('search', '')

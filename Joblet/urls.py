@@ -31,7 +31,7 @@ urlpatterns = [
     path('services/', views.services, name='services'),
     path('service/<int:service_id>/', views.service_detail, name='service_detail'),
     path('booking/', views.booking, name='booking'),
-
+    path('myorders/', views.myorders, name='myorders'),
     path('myservices/', views.myservices, name='myservices'),
 ]
 

@@ -13,24 +13,21 @@
 
 <body data-theme="nord">
 <div class="h-screen w-screen">
-    <div class="p-4 mx-4">
-        <div class="navbar bg-primary rounded-lg">
+    <div class="">
+        <div class="navbar bg-base-200">
             <div class="navbar-start flex items-center gap-4">
-                <a class="btn btn-ghost text-xl text-white">joblet.</a>
-                <div class="form-control flex flex-row">
-                    <input type="text" placeholder="What you want?" class="input w-96 rounded-l-lg rounded-r-[0px]" />
-                    <button class="btn btn-base text-primary rounded-l-[0px]">Search</button>
-                </div>
-            </div>
+                <a class="btn btn-ghost text-3xl text-primary">joblet.</a>
             {% if user.is_authenticated %}
-                <div class="navbar-start flex items-center gap-4">
-                    <a class="btn btn-ghost text-xl text-white">joblet.</a>
-                        <ul class="menu menu-horizontal px-1 text-white text-lg">
+                        <ul class="menu menu-horizontal px-1 text-primary text-lg">
                         {% if user.is_provider %}
-                            <li><a href="{% url 'services' %}">Services</a></li>
-                        {% else %}
                             <li><a href="{% url 'myservices' %}">My Services</a></li>
                             <li><a href="{% url 'booking' %}">Booking</a></li>
+                        {% elif user.username == 'admin'%}
+                            <li><a href="{% url 'services' %}">Pending Services</a></li>
+                            <li><a href="{% url 'services' %}">Users</a></li>
+                            <li><a href="{% url 'services' %}">Categorys</a></li>
+                        {% else %}
+                            <li><a href="{% url 'services' %}">Services</a></li>
                         {% endif %}
                         </ul>
                 </div>
@@ -40,43 +37,49 @@
                         <div tabindex="0" role="button" class="btn btn-ghost btn-circle bg-gray-300 text-black">
                             <span class="text-lg font-semibold">{{ user.username|slice:":1"|upper }}</span>
                         </div>
-                        <ul tabindex="0" class="menu menu-sm dropdown-content bg-base rounded-box z-[1] mt-3 w-52 p-2 shadow">
-                            <li><a class="justify-between">Profile<span class="badge">New</span></a></li>
-                            <li><a>Settings</a></li>
+                        <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+                            <li><a href="{% url 'profile' %}" class="justify-between">Profile</a></li>
                             <li>
                                 <a href="#" onclick="document.getElementById('logout-form').submit()">Logout</a>
                                 <form id="logout-form" action="{% url 'logout' %}" method="POST" class="hidden">
                                     {% csrf_token %}
                                 </form>
                             </li>
+                            {% if user.username != admin and not user.is_provider %}
+                                <li><a href="{% url 'myorders' %}">My Orders</a></li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
-            </div>
-        {% else %}
-            <div class="navbar-end flex gap-2">
-                <form action="{% url 'register' %}" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-base-100 text-primary">Become a Seller</button>
-                </form>
-{#                    <form action="{% url 'login' %}" method="POST">#}
-{#                        {% csrf_token %}#}
-{#                        <button type="submit" class="btn btn-base-200 text-accent">Sign In</button>#}
-{#                    </form>#}
-                <form action="{% url 'register' %}" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-base-100 text-primary">Sign Up</button>
-                </form>
-            </div>
-        {% endif %}
+            {% else %}
+                    <ul class="menu menu-horizontal px-1 text-primary text-lg">
+                        <li><a href="{% url 'services' %}">Services</a></li>
+                        <li>
+                            <details>
+                                <summary>Filter</summary>
+                                <ul class="bg-base-100 rounded-t-none p-2">
+                                    <li><a>Category</a></li>
+                                    <li><a>User</a></li>
+                                </ul>
+                            </details>
+                        </li>
+                    </ul>
+                </div>
+                <div class="navbar-end flex gap-2">
+                    <ul class="menu menu-horizontal px-1 text-primary text-lg">
+                        <li>
+                            <a href="{% url 'login' %}" class="my-auto">Sign in</a>
+                        </li>
+                        <li class="bg-primary w-24 text-base-200 rounded-3xl hover:bg-primary">
+                            <a href="{% url 'register' %}">Join us</a>
+                        </li>
+                    </ul>
+                </div>
+            {% endif %}
     </div>
+    {% block content %}
 
-    <div class="py-4">
-        <div class="w-full bg-base-300 h-[calc(100vh-140px)] overflow-auto rounded-lg">
-            {% block content %}
-            {% endblock %}
-        </div>
-    </div>
+    {% endblock %}
 </div>
 </body>
 </html>
