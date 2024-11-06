@@ -3,19 +3,18 @@
 {% block content %}
 
     <div class="p-4">
-        <div>
-            <a href="{% url 'services' %}" class="btn btn-primary text-white">Back to Services</a>
-            
-{#            image#}
-            {% if service.image %}
-                <img src="{{ service.image.url }}" alt="{{ service.title }}" class="rounded-lg mt-4">
-            {% else %}
-                <img src="https://via.placeholder.com/640x360.png?text=No+Image" alt="{{ service.title }}" class="rounded-lg mt-4">
-            {% endif %}
+        <a href="{% url 'services' %}" class="btn btn-primary text-white">Back to Services</a>
 
-            {# profile #}
-            <a class="mt-4 flex gap-4" href="{% url 'profile' service.provider.id %}">
-                <div class="avatar">
+        {# image #}
+        {% if service.image %}
+            <img src="{{ service.image.url }}" alt="{{ service.title }}" class="rounded-lg mt-4">
+        {% else %}
+            <img src="https://via.placeholder.com/640x360.png?text=No+Image" alt="{{ service.title }}" class="rounded-lg mt-4">
+        {% endif %}
+
+        {# profile #}
+        <a class="ml-2 mt-4 flex gap-4 w-fit" href="{% url 'profile' service.provider.id %}">
+            <div class="avatar">
                 <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                     {% if service.provider.avatar %}
                         <img src="{{ service.provider.avatar.url }}" alt="{{ service.provider.user }}">
@@ -27,21 +26,27 @@
                 </div>
             </div>
 
-                <div>
-                    <h2 class="text-2xl font-bold">{{ service.provider.user.username }}</h2>
-                </div>
-            </a>
-
-            
-            <div class="bg-base-200 rounded-lg p-4">
-                <h1 class="text-2xl font-bold">{{ service.title }}</h1>
-                <p class="text-lg text-base-content">{{ service.description }}</p>
-                <p class="text-lg text-base-content">Price: ${{ service.price }}</p>
-                <p class="text-lg text-base-content">Category: {{ service.category }}</p>
-                <p class="text-lg text-base-content">Posted by: {{ service.provider }}</p>
-                <p class="text-lg text-base-content">Posted on: {{ service.created_at }}</p>
+            <div>
+                <h2 class="text-2xl font-bold">{{ service.provider.user.username }}</h2>
             </div>
+        </a>
+
+
+        <div class="rounded-lg p-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">{{ service.title }}</h1>
+                <span class="badge badge-primary text-white">{{ service.category }}</span>
+            </div>
+            <p class="text-lg text-base-content">{{ service.description }}</p>
+            <p class="text-lg text-base-content">Category: {{ service.category }}</p>
+            <p class="text-lg text-base-content">Posted on: {{ service.created_at }}</p>
         </div>
+    </div>
+
+    {# a fixed window with price and option to buy #}
+    <div class="fixed bottom-0 left-0 right-0 bg-base-200 p-4 flex justify-between items-center">
+        <span class="text-2xl font-bold">${{ service.price }}</span>
+        <a href="" class="btn btn-primary text-white">Book Now</a>
     </div>
 
 {% endblock %}
