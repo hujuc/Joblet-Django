@@ -10,6 +10,7 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 from .models import Service, Profile
+from django.shortcuts import get_object_or_404
 
 from .models import Service, Category
 
@@ -122,10 +123,8 @@ def logout_view(request):
 def about(request):
     return render(request, 'about.html')
 
-def profile(request,user_id):
-    user_profile = Profile.objects.get(user_id=user_id)
+def profile(request, user_id):
+    user_profile = get_object_or_404(Profile, user_id=user_id)
     return render(request, 'profile.html', {'profile': user_profile})
-
-
 
 
