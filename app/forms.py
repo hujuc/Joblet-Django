@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from app.models import Profile
+from app.models import Profile, Review
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -54,3 +54,11 @@ class ProfileForm(forms.ModelForm):
             'facebook': forms.URLInput(attrs={'placeholder': 'https://facebook.com/username'}),
         }
 
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.NumberInput(attrs={'class': 'input input-bordered w-full','placeholder': 'Rating out of 5', 'min': 0, 'max': 5, 'step': 0.1}),
+            'comment': forms.Textarea(attrs={'class': 'textarea textarea-bordered w-full', 'placeholder': 'Leave a review', 'rows': 4}),
+        }

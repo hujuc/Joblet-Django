@@ -87,14 +87,73 @@
         </div>
     {% endif %}
 
-    <!-- Profile Statistics -->
-    <div class="mt-6">
-        <h2 class="text-2xl font-semibold">Profile Statistics</h2>
-        <ul>
-            <li>Completed Services: {{ profile.completed_services_count }}</li>
-{#            <li>Total Reviews: {{ profile.total_reviews }}</li>#}
-{#            <li>Average Rating: {{ profile.average_rating|default:"N/A" }}</li>#}
-        </ul>
+
+    <!-- Reviews -->
+    <div class="form-control mb-8 mt-6 p-6 bg-base-200 rounded-lg">
+        <h2 class="text-2xl font-bold mb-4">Reviews</h2>
+
+        <!-- Average Rating Display -->
+        <div class="mb-6 flex items-center gap-2">
+            <h3 class="text-xl font-semibold">Average Rating:</h3>
+            <span class="text-yellow-500 text-2xl font-bold">{{ avg_rating|floatformat:1 }}/5</span>
+
+            <!-- Star Rating Display -->
+            <div class="flex ml-2">
+                {% for i in "12345" %}
+                    {% if i <= avg_rating|floatformat:0 %}
+                        <span class="text-yellow-500 text-lg">★</span>
+                    {% else %}
+                        <span class="text-gray-300 text-lg">★</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Total Reviews -->
+        <div class="mb-2">
+            <h3 class="text-lg font-semibold">Total Reviews: {{ profile.total_reviews }}</h3>
+        </div>
+
+        <!-- Completed Services -->
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold">Completed Services: {{ profile.completed_services_count }}</h3>
+        </div>
+
+        <!-- Review Form -->
+        <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+            <h3 class="text-lg font-semibold mb-2">Leave a Review</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="grid gap-4">
+                    {{ form.rating.label_tag }}
+                    {{ form.rating }}
+                    <small class="text-gray-500">Rate out of 5</small>
+
+                    {{ form.comment.label_tag }}
+                    {{ form.comment }}
+                </div>
+                <button type="submit" class="btn btn-primary mt-4 w-full text-white">Submit Review</button>
+            </form>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="mb-6">
+            <h3 class="text-xl font-semibold mb-2">User Reviews</h3>
+            <div class="space-y-4">
+                {% for review in reviews %}
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <div class="flex items-center justify-between mb-2">
+                            <strong class="text-lg">{{ review.reviewer.username }}</strong>
+                            <span class="text-yellow-500 text-lg">{{ review.rating }}/5</span>
+                        </div>
+                        <p class="mb-2">{{ review.comment }}</p>
+                        <small class="text-gray-500">Reviewed on {{ review.created_at|date:"M d, Y" }}</small>
+                    </div>
+                {% empty %}
+                    <p class="text-gray-500">No reviews yet.</p>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 

@@ -1,11 +1,11 @@
 import logging
 
-from django.db.models import Q
+from django.db.models import Q, Avg
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, LoginForm, ProfileForm
+from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
@@ -123,10 +123,35 @@ def logout_view(request):
 def about(request):
     return render(request, 'about.html')
 
+
 def profile(request, user_id):
     user_profile = get_object_or_404(Profile, user_id=user_id)
-    form = ProfileForm(instance=user_profile)
-    return render(request, 'profile.html', {'form': form, 'profile': user_profile})
+
+    # Calculate average rating
+    avg_rating = user_profile.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    # Fetch reviews
+    reviews = user_profile.reviews.all().order_by('-created_at')
+
+    # Handle review form submission
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.profile = user_profile
+            review.reviewer = request.user
+            review.save()
+            return redirect('profile', user_id=user_id)
+    else:
+        form = ReviewForm()
+
+    context = {
+        'profile': user_profile,
+        'avg_rating': avg_rating,
+        'reviews': reviews,
+        'form': form,
+    }
+    return render(request, 'profile.html', context)
 
 
 def edit_profile(request, user_id):
@@ -134,13 +159,13 @@ def edit_profile(request, user_id):
 
     # Ensure only the profile owner can edit
     if request.user != profile.user:
-        return redirect('profile', user_id=user_id)  # Corrected to use user_id
+        return redirect('profile', user_id=user_id)
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('profile', user_id=user_id)  # Corrected to use user_id
+            return redirect('profile', user_id=user_id)
     else:
         form = ProfileForm(instance=profile)
 
