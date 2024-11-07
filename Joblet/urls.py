@@ -33,6 +33,8 @@ urlpatterns = [
     path('booking/', views.booking, name='booking'),
     path('myorders/', views.myorders, name='myorders'),
     path('myservices/', views.myservices, name='myservices'),
+    path('categories/', views.categories, name='categories'),
+    path('providers/', views.providers, name='providers'),
 ]
 
 if settings.DEBUG:

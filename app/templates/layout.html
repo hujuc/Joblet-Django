@@ -56,15 +56,8 @@
             {% else %}
                     <ul class="menu menu-horizontal px-1 text-primary text-lg">
                         <li><a href="{% url 'services' %}">Services</a></li>
-                        <li>
-                            <details>
-                                <summary>Filter</summary>
-                                <ul class="bg-base-100 rounded-t-none p-2">
-                                    <li><a>Category</a></li>
-                                    <li><a>User</a></li>
-                                </ul>
-                            </details>
-                        </li>
+                        <li><a href="{% url 'categories' %}">Categories</a></li>
+                        <li><a href="{% url 'providers' %}">Providers</a></li>
                     </ul>
                 </div>
                 <div class="navbar-end flex gap-2">

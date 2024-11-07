@@ -22,6 +22,15 @@ def myservices(request):
     user_services = Service.objects.filter(provider=user_profile)
     return render(request, 'myservices.html', {'services': user_services})
 
+def categories(request):
+    categories = Category.objects.all()
+    return render(request, 'categories.html', {'categories': categories})
+
+def providers(request):
+    providers = Profile.objects.all()
+    return render(request, 'providers.html', {'providers': providers})
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('index')
