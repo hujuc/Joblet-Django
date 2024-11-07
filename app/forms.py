@@ -1,11 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-<<<<<<< HEAD
-from app.models import Profile, Review
-=======
-from app.models import Profile, Provider
->>>>>>> b5adc09 (fix navbar layout)
+from app.models import Profile, Review, Provider
 
 
 from django.db import transaction
@@ -60,10 +56,15 @@ class LoginForm(forms.Form):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['avatar', 'about', 'contact_email', 'linkedin', 'twitter', 'facebook']
+        fields = ['avatar']
+
+class ProviderForm(forms.ModelForm):
+    class Meta:
+        model = Provider
+        fields = ['about', 'contact_email', 'linkedin', 'twitter', 'facebook']
         widgets = {
-            'about': forms.Textarea(attrs={'placeholder': 'Tell us about yourself', 'rows': 4}),
-            'contact_email': forms.EmailInput(attrs={'placeholder': 'Enter your email'}),
+            'about': forms.Textarea(attrs={'placeholder': 'Tell us about your services', 'rows': 4}),
+            'contact_email': forms.EmailInput(attrs={'placeholder': 'Enter your contact email'}),
             'linkedin': forms.URLInput(attrs={'placeholder': 'https://linkedin.com/in/username'}),
             'twitter': forms.URLInput(attrs={'placeholder': 'https://twitter.com/username'}),
             'facebook': forms.URLInput(attrs={'placeholder': 'https://facebook.com/username'}),

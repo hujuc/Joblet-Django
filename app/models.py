@@ -17,7 +17,7 @@ class Profile(models.Model):
 
 
 class Provider(models.Model):
-    user = models.OneToOneField(Profile, on_delete=models.CASCADE)
+    profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
     about = models.TextField(blank=True, null=True)
     linkedin = models.URLField(blank=True, null=True)
     twitter = models.URLField(blank=True, null=True)
@@ -27,8 +27,8 @@ class Provider(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def completed_services_count(self):
-        return self.bookings.filter(status='completed').count()
+    # def completed_services_count(self):
+    #     return self.bookings.filter(status='completed').count()
 
     def total_reviews(self):
         return self.reviews.count()
@@ -39,17 +39,17 @@ class Provider(models.Model):
         return None
 
     def __str__(self):
-        return self.user.username
+        return self.profile.user.username
 
 class Review(models.Model):
-    profile = models.ForeignKey(Profile, related_name='reviews', on_delete=models.CASCADE)
+    profile = models.ForeignKey(Provider, related_name='reviews', on_delete=models.CASCADE)
     reviewer = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.DecimalField(max_digits=2, decimal_places=1)  # Rating out of 5.0
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.profile.user.username} - {self.reviewer.username} - {self.rating}"
+    # def __str__(self):
+    #     return f"{self.profile.user.username} - {self.reviewer.username} - {self.rating} stars"
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
