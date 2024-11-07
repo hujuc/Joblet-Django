@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from app.models import Profile
+from app.models import Profile, Review
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -50,3 +50,23 @@ class LoginForm(forms.Form):
         label="Password"
     )
 
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['avatar', 'about', 'contact_email', 'linkedin', 'twitter', 'facebook']
+        widgets = {
+            'about': forms.Textarea(attrs={'placeholder': 'Tell us about yourself', 'rows': 4}),
+            'contact_email': forms.EmailInput(attrs={'placeholder': 'Enter your email'}),
+            'linkedin': forms.URLInput(attrs={'placeholder': 'https://linkedin.com/in/username'}),
+            'twitter': forms.URLInput(attrs={'placeholder': 'https://twitter.com/username'}),
+            'facebook': forms.URLInput(attrs={'placeholder': 'https://facebook.com/username'}),
+        }
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.HiddenInput(),  # Hide the default rating input
+            'comment': forms.Textarea(attrs={'class': 'textarea textarea-bordered w-full', 'placeholder': 'Write your review here'}),
+        }
