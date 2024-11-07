@@ -42,8 +42,10 @@
                     <button type="submit" class="btn btn-primary w-24 ml-4 mt-4 text-white rounded-xl mx-auto">Go Home</button>
                 </a>
             </div>
-            {% block content %}
-            {% endblock %}
+            <div class="relative z-10 flex items-center justify-center h-[calc(100%-4rem)]">
+                {% block content %}
+                {% endblock %}
+            </div>
         </div>
     </div>
 </body>
