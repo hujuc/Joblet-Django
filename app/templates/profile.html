@@ -161,7 +161,7 @@
                 {% for review in reviews %}
                     <div class="bg-white p-4 rounded-lg shadow-md">
                         <div class="flex items-center justify-between mb-2">
-                            <strong class="text-lg">{{ review.reviewer.username }}</strong>
+                            <strong class="text-lg text-primary">{{ review.reviewer.user.username }}</strong>
                             <span class="text-yellow-500 text-lg">{{ review.rating }}/5</span>
                         </div>
                         <p class="mb-2">{{ review.comment }}</p>

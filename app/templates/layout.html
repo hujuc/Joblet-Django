@@ -26,7 +26,7 @@
                                 <li><a href="">Opportunities</a></li>
                             {% elif user.username == 'admin' %}
                                 <li><a href="{% url 'services' %}">Pending Services</a></li>
-                                <li><a href="{% url 'users' %}">Users</a></li>
+                                <li><a href="{% url 'providers' %}">Users</a></li>
                                 <li><a href="{% url 'categories' %}">Categories</a></li>
                             {% else %}
                                 <li><a href="{% url 'services' %}">Services</a></li>

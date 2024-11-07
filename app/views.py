@@ -15,8 +15,9 @@ from django.shortcuts import get_object_or_404
 logger = logging.getLogger(__name__)
 
 def myservices(request):
-    user_profile = Profile.objects.get(user=request.user)
-    user_services = Service.objects.filter(provider=user_profile)
+    user_profile = get_object_or_404(Profile, user=request.user)
+    provider = get_object_or_404(Provider, profile=user_profile)
+    user_services = Service.objects.filter(provider=provider)
     return render(request, 'myservices.html', {'services': user_services})
 
 def categories(request):
@@ -126,6 +127,7 @@ def about(request):
 
 def profile(request, user_id):
     user_profile = get_object_or_404(Profile, user_id=user_id)
+
     try:
         provider = Provider.objects.get(profile=user_profile)
         avg_rating = provider.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
@@ -138,8 +140,9 @@ def profile(request, user_id):
         form = ReviewForm(request.POST)
         if form.is_valid():
             review = form.save(commit=False)
-            review.profile = provider
-            review.reviewer = request.user
+            review.provider = provider
+            reviewer_profile = Profile.objects.get(user=request.user)
+            review.reviewer = reviewer_profile
             review.save()
             return redirect('profile', user_id=user_id)
     else:
@@ -152,8 +155,6 @@ def profile(request, user_id):
         'form': form,
     }
     return render(request, 'profile.html', context)
-
-
 
 def edit_profile(request, user_id):
     profile = get_object_or_404(Profile, user__id=user_id)
