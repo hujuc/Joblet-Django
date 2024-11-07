@@ -28,10 +28,10 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('about/', views.about, name='about'),
     path('profile/<int:user_id>/', views.profile, name='profile'),
+    path('profile/<int:user_id>/edit/', views.edit_profile, name='edit_profile'),
     path('services/', views.services, name='services'),
     path('service/<int:service_id>/', views.service_detail, name='service'),
     path('booking/', views.booking, name='booking'),
-
     path('myservices/', views.myservices, name='myservices'),
 ]
 

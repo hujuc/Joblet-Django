@@ -42,3 +42,15 @@ class LoginForm(forms.Form):
         widget=forms.PasswordInput(attrs={'class': 'form-control input w-full', 'placeholder': 'Enter your password'})
     )
 
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['avatar', 'about', 'contact_email', 'linkedin', 'twitter', 'facebook']
+        widgets = {
+            'about': forms.Textarea(attrs={'placeholder': 'Tell us about yourself', 'rows': 4}),
+            'contact_email': forms.EmailInput(attrs={'placeholder': 'Enter your email'}),
+            'linkedin': forms.URLInput(attrs={'placeholder': 'https://linkedin.com/in/username'}),
+            'twitter': forms.URLInput(attrs={'placeholder': 'https://twitter.com/username'}),
+            'facebook': forms.URLInput(attrs={'placeholder': 'https://facebook.com/username'}),
+        }
+

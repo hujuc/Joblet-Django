@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, LoginForm
+from .forms import CustomUserCreationForm, LoginForm, ProfileForm
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
@@ -125,23 +125,23 @@ def about(request):
 
 def profile(request, user_id):
     user_profile = get_object_or_404(Profile, user_id=user_id)
-    return render(request, 'profile.html', {'profile': user_profile})
+    form = ProfileForm(instance=user_profile)
+    return render(request, 'profile.html', {'form': form, 'profile': user_profile})
 
 
 def edit_profile(request, user_id):
-    profile = get_object_or_404(Profile, id=user_id)
+    profile = get_object_or_404(Profile, user__id=user_id)
+
+    # Ensure only the profile owner can edit
+    if request.user != profile.user:
+        return redirect('profile', user_id=user_id)  # Corrected to use user_id
 
     if request.method == 'POST':
-        profile.bio = request.POST.get('bio')
-        profile.location = request.POST.get('location')
-        profile.phone = request.POST.get('phone')
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile', user_id=user_id)  # Corrected to use user_id
+    else:
+        form = ProfileForm(instance=profile)
 
-        if 'avatar' in request.FILES:
-            profile.avatar = request.FILES['avatar']
-
-        profile.save()
-        return redirect('profile', id=user_id)
-
-    return render(request, 'edit_profile.html', {'profile': profile})
-
-
+    return render(request, 'profile.html', {'form': form, 'profile': profile})

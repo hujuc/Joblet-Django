@@ -9,9 +9,24 @@ class Profile(models.Model):
     is_provider = models.BooleanField(default=False)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True)
-    bio = models.TextField(max_length=500, blank=True)
+    linkedin = models.URLField(blank=True, null=True)
+    twitter = models.URLField(blank=True, null=True)
+    facebook = models.URLField(blank=True, null=True)
+    contact_email = models.EmailField(blank=True, null=True)
+    about = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=100, blank=True)
     wallet = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
+
+    def completed_services_count(self):
+        return self.bookings.filter(status='completed').count()
+
+    # def total_reviews(self):
+    #     return self.reviews.count()
+    #
+    # def average_rating(self):
+    #     if self.reviews.exists():
+    #         return self.reviews.aggregate(models.Avg('rating'))['rating__avg']
+    #     return None
 
     def __str__(self):
         return self.user.username

@@ -18,17 +18,43 @@
             </div>
             <div>
                 <h1 class="text-3xl font-bold">{{ profile.user.username }}</h1>
-                <p class="text-base-content">{{ profile.bio|default:"No bio available." }}</p>
                 <p class="text-sm text-gray-500">{{ profile.location|default:"Location not specified" }}</p>
             </div>
         </div>
-        
+
         <div class="flex gap-2">
             <button class="btn btn-primary text-white">Contact</button>
             {% if user.is_authenticated and user == profile.user %}
                 <button class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.remove('hidden')">Edit Profile</button>
             {% endif %}
         </div>
+    </div>
+
+    <!-- Profile Stats -->
+    {% if profile.contact_email or profile.linkedin or profile.twitter or profile.facebook %}
+        <div class="mt-6">
+            <h2 class="text-2xl font-semibold">Contact & Social Links</h2>
+            <div class="flex gap-4 mt-2">
+                {% if profile.contact_email %}
+                    <a href="mailto:{{ profile.contact_email }}" class="text-blue-500">Email</a>
+                {% endif %}
+                {% if profile.linkedin %}
+                    <a href="{{ profile.linkedin }}" target="_blank" class="text-blue-500">LinkedIn</a>
+                {% endif %}
+                {% if profile.twitter %}
+                    <a href="{{ profile.twitter }}" target="_blank" class="text-blue-500">Twitter</a>
+                {% endif %}
+                {% if profile.facebook %}
+                    <a href="{{ profile.facebook }}" target="_blank" class="text-blue-500">Facebook</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Profile About Section -->
+    <div class="mt-6">
+        <h2 class="text-2xl font-semibold">About Me</h2>
+        <p style="white-space: pre-wrap;" class="text-justify">{{ profile.about|default:"This user has not added an about section yet." }}</p>
     </div>
 
     <!-- List of Services (if provider) -->
@@ -60,42 +86,89 @@
             {% endfor %}
         </div>
     {% endif %}
+
+    <!-- Profile Statistics -->
+    <div class="mt-6">
+        <h2 class="text-2xl font-semibold">Profile Statistics</h2>
+        <ul>
+            <li>Completed Services: {{ profile.completed_services_count }}</li>
+{#            <li>Total Reviews: {{ profile.total_reviews }}</li>#}
+{#            <li>Average Rating: {{ profile.average_rating|default:"N/A" }}</li>#}
+        </ul>
+    </div>
 </div>
 
-<!-- Edit Profile Modal with Increased Width -->
+<!-- Edit Profile Modal -->
 <div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
-    <div class="bg-base-200 rounded-lg w-[30rem] p-6 relative">
+    <div class="bg-base-200 rounded-lg w-[30rem] max-h-[90vh] p-6 overflow-y-auto relative">
         <h2 class="text-2xl font-bold mb-4">Edit Profile</h2>
-        
-        <form method="POST" action="{#% url 'edit_profile' profile.id %#}" enctype="multipart/form-data">
+
+        <form method="POST" action="{% url 'edit_profile' profile.user.id %}" enctype="multipart/form-data">
             {% csrf_token %}
-            
-            <div class="form-control mb-4 flex items-center">
-                <label class="label w-full">Profile Image</label>
-                <div class="flex gap-4 items-center">
+
+            <!-- Profile Image Upload -->
+            <div class="form-control mb-4">
+                <label class="label font-semibold">Profile Image</label>
+                <div class="flex items-center gap-4">
                     <input type="file" name="avatar" accept="image/*" class="file-input file-input-bordered w-full">
                     {% if profile.avatar %}
                         <img src="{{ profile.avatar.url }}" alt="Current Profile Image" class="w-16 h-16 rounded-full">
                     {% endif %}
                 </div>
             </div>
-            
+
+            <!-- About Me Section -->
             <div class="form-control mb-4">
-                <label class="label">Username</label>
-                <input type="text" name="username" value="{{ profile.user.username }}" class="input input-bordered w-full" disabled>
+                <label class="label font-semibold">About Me</label>
+                <textarea name="about" class="textarea textarea-bordered w-full" placeholder="Tell us about yourself">{{ profile.about|default_if_none:"" }}</textarea>
+            </div>
+
+            <!-- Social Media Links Section -->
+            <h3 class="text-xl font-semibold mt-4">Social Media Links</h3>
+            <div class="form-control mb-4">
+                <label class="label font-semibold">Contact Email</label>
+                <input type="email" name="contact_email" value="{{ profile.contact_email|default_if_none:'' }}" placeholder="Enter your email" class="input input-bordered w-full">
             </div>
             <div class="form-control mb-4">
-                <label class="label">Bio</label>
-                <textarea name="bio" class="textarea textarea-bordered w-full">{{ profile.bio }}</textarea>
+                <label class="label font-semibold">LinkedIn</label>
+                <input type="url" name="linkedin" value="{{ profile.linkedin|default_if_none:'' }}" placeholder="https://linkedin.com/in/username" class="input input-bordered w-full">
             </div>
             <div class="form-control mb-4">
-                <label class="label">Location</label>
-                <input type="text" name="location" value="{{ profile.location }}" class="input input-bordered w-full">
+                <label class="label font-semibold">Twitter</label>
+                <input type="url" name="twitter" value="{{ profile.twitter|default_if_none:'' }}" placeholder="https://twitter.com/username" class="input input-bordered w-full">
             </div>
             <div class="form-control mb-4">
-                <label class="label">Phone</label>
-                <input type="text" name="phone" value="{{ profile.phone }}" class="input input-bordered w-full">
+                <label class="label font-semibold">Facebook</label>
+                <input type="url" name="facebook" value="{{ profile.facebook|default_if_none:'' }}" placeholder="https://facebook.com/username" class="input input-bordered w-full">
             </div>
+
+            <!-- Activity & Reviews Section (Read-Only) -->
+            <h3 class="text-xl font-semibold mt-4">Recent Activity & Reviews</h3>
+            <div class="mb-4 max-h-32 overflow-y-auto">
+                <h4 class="font-semibold">Recent Activity</h4>
+                <ul class="list-disc ml-5">
+                    {% for activity in profile.activities.all %}
+                        <li>{{ activity.description }} - {{ activity.timestamp|date:"M d, Y H:i" }}</li>
+                    {% empty %}
+                        <p class="text-gray-500">No recent activities.</p>
+                    {% endfor %}
+                </ul>
+
+                <h4 class="font-semibold mt-4">Reviews</h4>
+                <ul class="list-disc ml-5">
+                    {% for review in profile.reviews.all %}
+                        <li>
+                            <strong>{{ review.reviewer.username }}</strong>:
+                            <span>{{ review.rating }}/5</span> - {{ review.comment }}
+                            <br><small class="text-gray-500">Reviewed on {{ review.created_at|date:"M d, Y" }}</small>
+                        </li>
+                    {% empty %}
+                        <p class="text-gray-500">No reviews yet.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Save & Cancel Buttons -->
             <div class="flex justify-end gap-2">
                 <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.add('hidden')">Cancel</button>
                 <button type="submit" class="btn btn-primary text-white">Save Changes</button>
