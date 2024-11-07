@@ -27,8 +27,8 @@ class Provider(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    # def completed_services_count(self):
-    #     return self.bookings.filter(status='completed').count()
+    def completed_services_count(self):
+        return self.services.filter(booking__status='completed').count()
 
     def total_reviews(self):
         return self.reviews.count()
@@ -42,14 +42,14 @@ class Provider(models.Model):
         return self.profile.user.username
 
 class Review(models.Model):
-    profile = models.ForeignKey(Provider, related_name='reviews', on_delete=models.CASCADE)
-    reviewer = models.ForeignKey(User, on_delete=models.CASCADE)
+    provider = models.ForeignKey(Provider, related_name='reviews', on_delete=models.CASCADE)
+    reviewer = models.ForeignKey(Profile, on_delete=models.CASCADE)
     rating = models.DecimalField(max_digits=2, decimal_places=1)  # Rating out of 5.0
     comment = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
 
-    # def __str__(self):
-    #     return f"{self.profile.user.username} - {self.reviewer.username} - {self.rating} stars"
+    def __str__(self):
+        return f"{self.provider.profile.user.username} - {self.rating}"
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
