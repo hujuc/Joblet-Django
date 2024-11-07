@@ -1,8 +1,14 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+<<<<<<< HEAD
 from app.models import Profile, Review
+=======
+from app.models import Profile, Provider
+>>>>>>> b5adc09 (fix navbar layout)
 
+
+from django.db import transaction
 
 class CustomUserCreationForm(UserCreationForm):
     is_provider = forms.BooleanField(required=False, label="Are you a provider?")
@@ -20,6 +26,7 @@ class CustomUserCreationForm(UserCreationForm):
             raise forms.ValidationError("Este email já está em uso.")
         return email
 
+    @transaction.atomic
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
@@ -27,12 +34,12 @@ class CustomUserCreationForm(UserCreationForm):
         user.last_name = self.cleaned_data['last_name']
         if commit:
             user.save()
-            Profile.objects.create(
-                user=user,
-                provider=self.cleaned_data['is_provider']
-            )
+            # Cria o Profile após salvar o User
+            profile = Profile.objects.create(user=user)
+            # Se o usuário é um provider, cria a instância de Provider
+            if self.cleaned_data['is_provider']:
+                Provider.objects.create(user=profile)
         return user
-
 
 class LoginForm(forms.Form):
     username = forms.CharField(

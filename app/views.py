@@ -1,15 +1,15 @@
 import logging
 
-from django.db.models import Q, Avg
+from django.db.models import Q
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm
+from .forms import CustomUserCreationForm, LoginForm
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
-from .models import Service, Profile
+from .models import Service, Profile, Provider
 from django.shortcuts import get_object_or_404
 
 from .models import Service, Category
@@ -28,7 +28,7 @@ def categories(request):
     return render(request, 'categories.html', {'categories': categories})
 
 def providers(request):
-    providers = Profile.objects.all()
+    providers = Provider.objects.all()
     return render(request, 'providers.html', {'providers': providers})
 
 
@@ -39,6 +39,7 @@ def login_view(request):
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
             user = authenticate(request, username=username, password=password)
+
             if user is not None:
                 login(request, user)
                 return redirect('/')  # Redirect to home page or another page after login

@@ -12,74 +12,75 @@
 </head>
 
 <body data-theme="nord">
-<div class="h-screen w-screen">
-    <div class="">
+    <div class="h-screen w-screen">
         <div class="navbar bg-base-200">
-        <div class="container mx-auto">
-            <div class="navbar-start flex items-center gap-4">
-                <a class="btn btn-ghost text-3xl text-primary">joblet.</a>
-            {% if user.is_authenticated %}
-                        <ul class="menu menu-horizontal px-1 text-primary text-lg">
-                        {% if user.is_provider %}
-                            <li><a href="{% url 'myservices' %}">My Services</a></li>
-                            <li><a href="{% url 'booking' %}">Booking</a></li>
-                        {% elif user.username == 'admin'%}
-                            <li><a href="{% url 'services' %}">Pending Services</a></li>
-                            <li><a href="{% url 'services' %}">Users</a></li>
-                            <li><a href="{% url 'services' %}">Categorys</a></li>
-                        {% else %}
-                            <li><a href="{% url 'services' %}">Services</a></li>
-                        {% endif %}
-                        </ul>
-                </div>
+            <div class="container mx-auto">
+                <div class="navbar-start flex items-center gap-4">
+                    <a class="btn btn-ghost text-3xl text-primary">joblet.</a>
 
-                <div class="navbar-end flex gap-4">
-                    <div class="dropdown dropdown-end ">
-                        <span class="text-white mr-2">Bem-vindo(a), {{ user.username }}</span>
-                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle bg-gray-300 text-black">
-                            <span class="text-lg font-semibold">{{ user.username|slice:":1"|upper }}</span>
-                        </div>
-                        <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-                            <li><a href="{% url 'profile' %}" class="justify-between">Profile</a></li>
-                            <li>
-                                <a href="#" onclick="document.getElementById('logout-form').submit()">Logout</a>
-                                <form id="logout-form" action="{% url 'logout' %}" method="POST" class="hidden">
-                                    {% csrf_token %}
-                                </form>
-                            </li>
-                            {% if user.username != admin and not user.is_provider %}
-                                <li><a href="{% url 'myorders' %}">My Orders</a></li>
+                    {% if user.is_authenticated %}
+                        <ul class="menu menu-horizontal px-1 text-primary text-lg">
+                            {% if is_provider %}
+                                <li><a href="{% url 'myservices' %}">My Services</a></li>
+                                <li><a href="">Chat</a></li>
+                                <li><a href="">Opportunities</a></li>
+                            {% elif user.username == 'admin' %}
+                                <li><a href="{% url 'services' %}">Pending Services</a></li>
+                                <li><a href="{% url 'users' %}">Users</a></li>
+                                <li><a href="{% url 'categories' %}">Categories</a></li>
+                            {% else %}
+                                <li><a href="{% url 'services' %}">Services</a></li>
                             {% endif %}
                         </ul>
-                    </div>
-                </div>
-            {% else %}
-                    <ul class="menu menu-horizontal px-1 text-primary text-lg">
-                        <li><a href="{% url 'services' %}">Services</a></li>
-                        <li><a href="{% url 'categories' %}">Categories</a></li>
-                        <li><a href="{% url 'providers' %}">Providers</a></li>
-                    </ul>
-                </div>
-                <div class="navbar-end flex gap-2">
-                    <ul class="menu menu-horizontal px-1 text-primary text-lg">
-                        <li>
-                            <a href="{% url 'login' %}" class="my-auto">Sign in</a>
-                        </li>
-                        <li class="bg-primary w-24 text-base-200 rounded-3xl hover:bg-primary">
-                            <a href="{% url 'register' %}">Join us</a>
-                        </li>
-                    </ul>
-                </div>
-                </div>
-            {% endif %}
-    </div>
+                        </div>
 
+                        <div class="navbar-end flex gap-4">
+                            <div class="dropdown dropdown-end">
+                                <span class="text-primary mr-2">Bem-vindo(a), {{ user.username }}</span>
+                                <div tabindex="0" role="button" class="btn btn-ghost btn-circle bg-gray-300 text-black">
+                                    <span class="text-lg font-semibold">{{ user.username|slice:":1"|upper }}</span>
+                                </div>
+                                <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+                                    <li><a href="{% url 'profile' %}" class="justify-between">Profile</a></li>
+                                    <li>
+                                        <a href="#" onclick="document.getElementById('logout-form').submit()">Logout</a>
+                                        <form id="logout-form" action="{% url 'logout' %}" method="POST" class="hidden">
+                                            {% csrf_token %}
+                                        </form>
+                                    </li>
+                                    {% if user.username != 'admin' and not user.is_provider %}
+                                        <li><a href="{% url 'myorders' %}">My Orders</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% else %}
+                        <ul class="menu menu-horizontal px-1 text-primary text-lg">
+                            <li><a href="{% url 'services' %}">Services</a></li>
+                            <li><a href="{% url 'categories' %}">Categories</a></li>
+                            <li><a href="{% url 'providers' %}">Providers</a></li>
+                        </ul>
+                        </div>
+
+                        <div class="navbar-end flex gap-2">
+                            <ul class="menu menu-horizontal px-1 text-primary text-lg">
+                                <li>
+                                    <a href="{% url 'login' %}" class="my-auto">Sign in</a>
+                                </li>
+                                <li class="bg-primary w-24 text-base-200 rounded-3xl hover:bg-primary">
+                                    <a href="{% url 'register' %}">Join us</a>
+                                </li>
+                            </ul>
+                        </div>
+                    {% endif %}
+        </div>
+    </div>
 
     <div class="container mx-auto">
-    {% block content %}
-
-    {% endblock %}
+        {% block content %}
+        {% endblock %}
     </div>
-</div>
 </body>
 </html>
+
+

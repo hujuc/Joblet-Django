@@ -10,11 +10,10 @@ class Profile(models.Model):
     phone = models.CharField(max_length=15, blank=True)
     location = models.CharField(max_length=100, blank=True)
     wallet = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
-    role = models.CharField(max_length=10, choices=[('customer', 'Customer'), ('provider', 'Provider')], default='customer')
+
 
     def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.username = None
+        super().__init__(*args, **kwargs)
 
 
 class Provider(models.Model):
@@ -26,9 +25,7 @@ class Provider(models.Model):
     contact_email = models.EmailField(blank=True, null=True)
 
     def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.bookings = None
-        self.reviews = None
+        super().__init__(*args, **kwargs)
 
     def completed_services_count(self):
         return self.bookings.filter(status='completed').count()
