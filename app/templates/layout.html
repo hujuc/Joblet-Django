@@ -15,6 +15,7 @@
 <div class="h-screen w-screen">
     <div class="">
         <div class="navbar bg-base-200">
+        <div class="container mx-auto">
             <div class="navbar-start flex items-center gap-4">
                 <a class="btn btn-ghost text-3xl text-primary">joblet.</a>
             {% if user.is_authenticated %}
@@ -31,6 +32,7 @@
                         {% endif %}
                         </ul>
                 </div>
+
                 <div class="navbar-end flex gap-4">
                     <div class="dropdown dropdown-end ">
                         <span class="text-white mr-2">Bem-vindo(a), {{ user.username }}</span>
@@ -75,11 +77,16 @@
                         </li>
                     </ul>
                 </div>
+                </div>
             {% endif %}
     </div>
+
+
+    <div class="container mx-auto">
     {% block content %}
 
     {% endblock %}
+    </div>
 </div>
 </body>
 </html>
