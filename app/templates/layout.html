@@ -41,7 +41,7 @@
                                     <span class="text-lg font-semibold">{{ user.username|slice:":1"|upper }}</span>
                                 </div>
                                 <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-                                    <li><a href="{% url 'profile' %}" class="justify-between">Profile</a></li>
+                                    <li><a href="{% url 'profile' user.id %}" class="justify-between">Profile</a></li>
                                     <li>
                                         <a href="#" onclick="document.getElementById('logout-form').submit()">Logout</a>
                                         <form id="logout-form" action="{% url 'logout' %}" method="POST" class="hidden">

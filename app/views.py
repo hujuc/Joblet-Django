@@ -1,24 +1,21 @@
 import logging
-
+from django.db.models import Avg
 from django.db.models import Q
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
-from .models import Service, Profile, Provider
+from .models import Profile, Provider, Service, Category
 from django.shortcuts import get_object_or_404
-from .models import Service, Category
+
 
 logger = logging.getLogger(__name__)
 
 def myservices(request):
-    # Obtenha o perfil do usuário autenticado
     user_profile = Profile.objects.get(user=request.user)
-    # Filtre os serviços usando o perfil do usuário como provedor
     user_services = Service.objects.filter(provider=user_profile)
     return render(request, 'myservices.html', {'services': user_services})
 
@@ -41,9 +38,8 @@ def login_view(request):
 
             if user is not None:
                 login(request, user)
-                return redirect('/')  # Redirect to home page or another page after login
+                return redirect('/')
             else:
-                # Display an error message if authentication fails
                 form.add_error(None, "Invalid username or password.")
     else:
         form = LoginForm()
@@ -128,22 +124,21 @@ def booking(request):
 def about(request):
     return render(request, 'about.html')
 
-
 def profile(request, user_id):
     user_profile = get_object_or_404(Profile, user_id=user_id)
+    try:
+        provider = Provider.objects.get(profile=user_profile)
+        avg_rating = provider.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+        reviews = provider.reviews.all().order_by('-created_at')
+    except Provider.DoesNotExist:
+        avg_rating = 0
+        reviews = []
 
-    # Calculate average rating
-    avg_rating = user_profile.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
-
-    # Fetch reviews
-    reviews = user_profile.reviews.all().order_by('-created_at')
-
-    # Handle review form submission
     if request.method == 'POST':
         form = ReviewForm(request.POST)
         if form.is_valid():
             review = form.save(commit=False)
-            review.profile = user_profile
+            review.profile = provider
             review.reviewer = request.user
             review.save()
             return redirect('profile', user_id=user_id)
@@ -157,6 +152,7 @@ def profile(request, user_id):
         'form': form,
     }
     return render(request, 'profile.html', context)
+
 
 
 def edit_profile(request, user_id):
