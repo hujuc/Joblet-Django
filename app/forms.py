@@ -59,6 +59,6 @@ class ReviewForm(forms.ModelForm):
         model = Review
         fields = ['rating', 'comment']
         widgets = {
-            'rating': forms.NumberInput(attrs={'class': 'input input-bordered w-full','placeholder': 'Rating out of 5', 'min': 0, 'max': 5, 'step': 0.1}),
-            'comment': forms.Textarea(attrs={'class': 'textarea textarea-bordered w-full', 'placeholder': 'Leave a review', 'rows': 4}),
+            'rating': forms.HiddenInput(),  # Hide the default rating input
+            'comment': forms.Textarea(attrs={'class': 'textarea textarea-bordered w-full', 'placeholder': 'Write your review here'}),
         }
