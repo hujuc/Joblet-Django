@@ -5,13 +5,12 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, LoginForm
+from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 from .models import Service, Profile, Provider
 from django.shortcuts import get_object_or_404
-
 from .models import Service, Category
 
 logger = logging.getLogger(__name__)
