@@ -4,24 +4,63 @@ from django.contrib.auth.models import User
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    provider = models.BooleanField(default=False)
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True)
-    bio = models.TextField(max_length=500, blank=True)
     location = models.CharField(max_length=100, blank=True)
     wallet = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
+    role = models.CharField(max_length=10, choices=[('customer', 'Customer'), ('provider', 'Provider')], default='customer')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.username = None
+
+
+class Provider(models.Model):
+    user = models.OneToOneField(Profile, on_delete=models.CASCADE)
+    about = models.TextField(blank=True, null=True)
+    linkedin = models.URLField(blank=True, null=True)
+    twitter = models.URLField(blank=True, null=True)
+    facebook = models.URLField(blank=True, null=True)
+    contact_email = models.EmailField(blank=True, null=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.bookings = None
+        self.reviews = None
+
+    def completed_services_count(self):
+        return self.bookings.filter(status='completed').count()
+
+    def total_reviews(self):
+        return self.reviews.count()
+
+    def average_rating(self):
+        if self.reviews.exists():
+            return self.reviews.aggregate(models.Avg('rating'))['rating__avg']
+        return None
 
     def __str__(self):
         return self.user.username
 
+class Review(models.Model):
+    profile = models.ForeignKey(Profile, related_name='reviews', on_delete=models.CASCADE)
+    reviewer = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.DecimalField(max_digits=2, decimal_places=1)  # Rating out of 5.0
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.profile.user.username} - {self.reviewer.username} - {self.rating}"
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    description = models.TextField()
+    about_me = models.TextField()
 
     def __str__(self):
         return self.name
 
 class Service(models.Model):
-    provider = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='services')
+    provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='services')
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField()
