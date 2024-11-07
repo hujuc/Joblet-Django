@@ -30,11 +30,11 @@ class CustomUserCreationForm(UserCreationForm):
         user.last_name = self.cleaned_data['last_name']
         if commit:
             user.save()
-            # Cria o Profile após salvar o User
+
             profile = Profile.objects.create(user=user)
-            # Se o usuário é um provider, cria a instância de Provider
+
             if self.cleaned_data['is_provider']:
-                Provider.objects.create(user=profile)
+                Provider.objects.create(profile=profile)
         return user
 
 class LoginForm(forms.Form):
