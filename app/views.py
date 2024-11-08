@@ -233,6 +233,10 @@ def booking(request):
 def about(request):
     return render(request, 'about.html')
 
+from django.shortcuts import redirect
+
+from decimal import Decimal
+
 def profile(request, user_id):
     # Obter o perfil do usuário pela ID fornecida
     user_profile = get_object_or_404(Profile, user_id=user_id)
@@ -250,8 +254,22 @@ def profile(request, user_id):
         reviews = []
         services = []
 
+    # Adicionar balance (somente para o próprio perfil)
+    if request.method == 'POST' and "add_balance" in request.POST:
+        balance_to_add = request.POST.get("balance_amount", "0")
+        try:
+            balance_to_add = Decimal(balance_to_add)  # Converter para Decimal
+            if request.user.id == user_id:  # Garantir que o usuário está editando seu próprio perfil
+                user_profile.wallet += balance_to_add
+                user_profile.save()
+                return redirect('profile', user_id=user_id)
+        except Exception as e:
+            # Log ou manipule o erro adequadamente
+            print(f"Erro ao adicionar saldo: {e}")
+            return redirect('profile', user_id=user_id)
+
     # Formulário de avaliação
-    if request.method == 'POST':
+    if request.method == 'POST' and "review" in request.POST:
         form = ReviewForm(request.POST)
         if form.is_valid():
             review = form.save(commit=False)
@@ -273,6 +291,8 @@ def profile(request, user_id):
         'form': form,
     }
     return render(request, 'profile.html', context)
+
+
 
 
 
