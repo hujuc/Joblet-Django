@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <div class="p-4">
+        <h1 class="text-3xl font-bold mb-6">Users</h1>
+
+        <!-- List of Users -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for user in users %}
+                <div class="card card-compact bg-base-200 shadow-md p-4">
+                    <div class="flex items-center gap-4">
+                        <!-- User Avatar -->
+                        <div class="avatar">
+                            <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                                {% if user.avatar %}
+                                    <img src="{{ user.avatar.url }}" alt="{{ user.user.username }}">
+                                {% else %}
+                                    <span class="text-white text-2xl font-semibold bg-primary w-full h-full flex items-center justify-center">
+                                    {{ user.user.username|slice:":1"|upper }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <!-- User Info -->
+                        <div>
+                            <h2 class="text-xl font-bold">{{ user.user.username }}</h2>
+                            <p class="text-sm text-gray-500">Email: {{ user.user.email }}</p>
+                            <p class="text-sm text-gray-500">Phone: {{ user.phone|default:"N/A" }}</p>
+                            <p class="text-sm text-gray-500">
+                                Role: {{ user.provider|yesno:"Provider,Client" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Ban Button -->
+                    <div class="mt-4">
+                        <form method="POST" action="{% url 'ban_user' user.user.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-error text-white">Ban User</button>
+                        </form>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-gray-500">No users available.</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
