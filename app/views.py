@@ -1,5 +1,6 @@
 import logging
 from django.db.models import Avg
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
