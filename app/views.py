@@ -48,8 +48,8 @@ def myservices(request):
     user_profile = get_object_or_404(Profile, user=request.user)
     provider = get_object_or_404(Provider, profile=user_profile)
     user_services = Service.objects.filter(provider=provider)
-    return render(request, 'myservices.html', {'services': user_services})
-
+    categories = Category.objects.all()  # Fetch categories here
+    return render(request, 'myservices.html', {'services': user_services, 'categories': categories})
 
 
 def categories(request):
@@ -70,15 +70,23 @@ def providers(request):
 
 
 def edit_service(request, service_id):
-    service = Service.objects.get(pk=service_id)
+    service = get_object_or_404(Service, pk=service_id)
     categories = Category.objects.all()
+
     if request.method == 'POST':
+        # Update fields with POST data
         service.title = request.POST.get('title')
         service.description = request.POST.get('description')
-        service.price = request.POST.get('price')  # Retrieve price from POST data
+        service.price = request.POST.get('price')
         service.category_id = request.POST.get('category')
-        service.save()
+
+        # Check if a new image was uploaded
+        if 'image' in request.FILES:
+            service.image = request.FILES['image']  # Update image with the new file
+
+        service.save()  # Save the service with updated fields
         return redirect('myservices')
+
     return render(request, 'edit_service.html', {'service': service, 'categories': categories})
 
 from datetime import timedelta
@@ -105,24 +113,42 @@ def add_service(request):
 
         # Create and save new service with the correct provider instance
         service = Service(
-            provider=provider,  # Assign Provider instance here
+            provider=provider,
             title=title,
             description=description,
             price=price,
             duration=duration,
             category_id=category_id,
-            is_active="Pending Approval",  # Set default status
+            is_active=True,  # Set to True to indicate the service is initially active
+            approval='pending approval',  # Set the initial approval status to "Pending Approval"
             image=image
         )
         service.save()
 
         return redirect('myservices')
 
-    return render(request, 'add_service.html', {'categories': categories})
+    return render(request, 'myservices.html', {'categories': categories})
+
 def delete_service(request, service_id):
     service = Service.objects.get(pk=service_id)
     service.delete()
     return redirect('myservices')
+
+from django.http import JsonResponse
+def get_service_data(request, service_id):
+    service = get_object_or_404(Service, pk=service_id)
+    categories = Category.objects.all()
+
+    data = {
+        'title': service.title,
+        'description': service.description,
+        'category': service.category.id,  # Current category ID of the service
+        'price': str(service.price),
+        'image': service.image.url if service.image else None,
+        'categories': [{'id': cat.id, 'name': cat.name} for cat in categories],  # Send all categories
+    }
+    return JsonResponse(data)
+
 
 def login_view(request):
     if request.method == 'POST':

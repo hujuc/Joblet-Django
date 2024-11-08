@@ -37,6 +37,7 @@ urlpatterns = [
     path('myservices/edit/<int:service_id>/', views.edit_service, name='edit_service'),
     path('myservices/delete/<int:service_id>/', views.delete_service, name='delete_service'),
     path('myservices/new/', views.add_service, name='add_service'),
+    path('myservices/edit/<int:service_id>/json/', views.get_service_data, name='get_service_data'),
     path('categories/', views.categories, name='categories'),
     path('providers/', views.providers, name='providers'),
     path('pendingservices/', views.pendingservices, name='pendingservices'),

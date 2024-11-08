@@ -1,51 +1,155 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="p-4">
-        {# Add New Service Button #}
-        <div class="flex justify-start mb-4">
-            <a href="/myservices/new" class="btn btn-primary text-white">Add New Service</a>
-        </div>
+<div class="p-4">
+    <!-- Add New Service Button -->
+    <div class="flex justify-start mb-4">
+        <label for="add-service-modal" class="btn btn-primary text-white">Add New Service</label>
+    </div>
 
-        {# Services List #}
-        <div class="bg-base-200 rounded-lg p-4">
-            <div class="flex flex-wrap gap-4">
-                {% for service in services %}
-                    <div class="card bg-base-100 w-96 shadow-xl relative">
-                        {# Dropdown Button #}
-                        <div class="absolute top-2 right-2">
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-white">•••</button>
-                                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-32 z-10">
-                                    <li><a href="/myservices/edit/{{ service.id }}">Edit</a></li>
-                                    <li><a href="/myservices/delete/{{ service.id }}" class="text-red-500">Delete</a></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        {# Service Image #}
-                        {% if service.image %}
-                            <figure>
-                                <img src="{{ service.image.url }}" alt="{{ service.title }}" />
-                            </figure>
-                        {% else %}
-                            <figure>
-                                <img src="https://loremflickr.com/500/500" alt="{{ service.title }}" />
-                            </figure>
-                        {% endif %}
-
-                        {# Service Details #}
-                        <div class="card-body">
-                            <h2 class="card-title">{{ service.title }}</h2>
-                            <p>{{ service.description }}</p>
-                            <div class="card-actions justify-end">
-                                <div class="badge badge-outline">{{ service.category }}</div>
-                                <div class="badge badge-outline">{{ service.is_active }}</div>
-                            </div>
+    <!-- Services List -->
+    <div class="bg-base-200 rounded-lg p-4">
+        <div class="flex flex-wrap gap-4">
+            {% for service in services %}
+                <div class="card bg-base-100 w-96 shadow-xl relative">
+                    <!-- Dropdown Button -->
+                    <div class="absolute top-2 right-2">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-white">•••</button>
+                            <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-32 z-10">
+                                <li><a href="#" onclick="openEditServiceModal({{ service.id }})">Edit</a></li>
+                                <li><a href="/myservices/delete/{{ service.id }}" class="text-red-500">Delete</a></li>
+                            </ul>
                         </div>
                     </div>
-                {% endfor %}
-            </div>
+
+                    <!-- Service Image -->
+                    {% if service.image %}
+                        <figure>
+                            <img src="{{ service.image.url }}" alt="{{ service.title }}" />
+                        </figure>
+                    {% endif %}
+
+                    <!-- Service Details -->
+                    <div class="card-body">
+                        <h2 class="card-title">{{ service.title }}</h2>
+                        <p>{{ service.description }}</p>
+                        <div class="card-actions justify-end">
+                            <div class="badge badge-outline">{{ service.category }}</div>
+                            <div class="badge badge-outline">{{ service.approval }}</div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
+</div>
+
+<!-- Add Service Modal -->
+<input type="checkbox" id="add-service-modal" class="modal-toggle" />
+<div class="modal">
+    <div class="modal-box relative">
+        <label for="add-service-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+        <h2 class="text-2xl font-bold mb-4">Add New Service</h2>
+        <form action="/myservices/new/" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="title" class="block text-sm font-medium">Service Title</label>
+                <input type="text" id="title" name="title" class="input input-bordered w-full" required>
+            </div>
+            <div class="mb-4">
+                <label for="description" class="block text-sm font-medium">Description</label>
+                <textarea id="description" name="description" class="textarea textarea-bordered w-full" required></textarea>
+            </div>
+            <div class="mb-4">
+                <label for="category" class="block text-sm font-medium">Category</label>
+                <select id="category" name="category" class="select select-bordered w-full" required>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="price" class="block text-sm font-medium">Price</label>
+                <input type="number" id="price" name="price" step="0.01" class="input input-bordered w-full" required>
+            </div>
+            <div class="mb-4">
+                <label for="duration" class="block text-sm font-medium">Duration (in minutes)</label>
+                <input type="number" id="duration" name="duration" class="input input-bordered w-full" required>
+            </div>
+            <div class="mb-4">
+                <label for="image" class="block text-sm font-medium">Image</label>
+                <input type="file" id="image" name="image" class="file-input file-input-bordered w-full">
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="btn btn-primary">Create Service</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Service Modal -->
+<input type="checkbox" id="edit-service-modal" class="modal-toggle" />
+<div class="modal">
+    <div class="modal-box relative">
+        <label for="edit-service-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+        <h2 class="text-2xl font-bold mb-4">Edit Service</h2>
+        <form id="edit-service-form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="edit-title" class="block text-sm font-medium">Service Title</label>
+                <input type="text" id="edit-title" name="title" class="input input-bordered w-full" required>
+            </div>
+            <div class="mb-4">
+                <label for="edit-description" class="block text-sm font-medium">Description</label>
+                <textarea id="edit-description" name="description" class="textarea textarea-bordered w-full" required></textarea>
+            </div>
+            <div class="mb-4">
+                <label for="edit-category" class="block text-sm font-medium">Category</label>
+                <select id="edit-category" name="category" class="select select-bordered w-full" required>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="edit-price" class="block text-sm font-medium">Price</label>
+                <input type="number" id="edit-price" name="price" step="0.01" class="input input-bordered w-full" required>
+            </div>
+            <div class="mb-4">
+                <label for="edit-image" class="block text-sm font-medium">Image</label>
+                <input type="file" id="edit-image" name="image" class="file-input file-input-bordered w-full">
+                <p id="current-image" class="mt-2"></p>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditServiceModal(serviceId) {
+        // Populate edit modal with service data from the server
+        fetch(`/myservices/edit/${serviceId}/json`)
+            .then(response => response.json())
+            .then(data => {
+                // Fill the form fields with data
+                document.getElementById('edit-title').value = data.title;
+                document.getElementById('edit-description').value = data.description;
+                document.getElementById('edit-category').value = data.category;
+                document.getElementById('edit-price').value = data.price;
+                if (data.image) {
+                    document.getElementById('current-image').innerHTML = `
+                        <p>Current Image:</p><img src="${data.image}" class="w-32 h-32 mt-2" />
+                    `;
+                }
+                document.getElementById('edit-service-form').action = `/myservices/edit/${serviceId}/`;
+
+                // Open modal
+                document.getElementById('edit-service-modal').checked = true;
+            });
+    }
+</script>
+
 {% endblock %}
