@@ -43,6 +43,8 @@ def edit_service(request, service_id):
     return render(request, 'edit_service.html', {'service': service, 'categories': categories})
 
 from datetime import timedelta
+
+
 @login_required
 def add_service(request):
     categories = Category.objects.all()
@@ -51,25 +53,26 @@ def add_service(request):
         title = request.POST.get('title')
         description = request.POST.get('description')
         price = request.POST.get('price')
+        duration_minutes = int(request.POST.get('duration', 0))
         category_id = request.POST.get('category')
         image = request.FILES.get('image')
 
         # Convert duration to timedelta
-        duration_minutes = int(request.POST.get('duration', 0))
         duration = timedelta(minutes=duration_minutes)
 
-        # Get the user profile
+        # Get the user’s profile and provider
         profile = Profile.objects.get(user=request.user)
+        provider, created = Provider.objects.get_or_create(profile=profile)
 
-        # Create and save new service with default status "Pending Approval"
+        # Create and save new service with the correct provider instance
         service = Service(
-            provider=profile,
+            provider=provider,  # Assign Provider instance here
             title=title,
             description=description,
             price=price,
-            duration=duration,  # Save as timedelta
+            duration=duration,
             category_id=category_id,
-            is_active="Pending Approval",  # Set status to "Pending Approval"
+            is_active="Pending Approval",  # Set default status
             image=image
         )
         service.save()
