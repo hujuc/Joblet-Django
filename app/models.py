@@ -65,7 +65,8 @@ class Service(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
     duration = models.DurationField()
-    is_active = models.CharField(choices=[('Pending Approval', 'Pending Approval'), ('Approved', 'Approved'), ('Not Approved', 'Not Approved')],max_length=16)
+    is_active  = models.BooleanField(default=True)
+    approval = models.CharField(choices=[('pending approval', 'Pending Approval'), ('approved', 'Approved'), ('not approved', 'Not Approved')],max_length=16, default='pending approval')
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     image = models.ImageField(upload_to='service_images/', blank=True, null=True)
 

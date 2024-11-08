@@ -5,15 +5,44 @@ from django.db.models import Q
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm
+from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm, CategoryForm
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.models import User
 from .models import Profile, Provider, Service, Category
 from django.shortcuts import get_object_or_404
 
 
 logger = logging.getLogger(__name__)
+
+def pendingservices(request):
+    services_pending = Service.objects.filter(approval='pending approval')
+    return render(request, 'pendingservices.html', {'services_pending': services_pending})
+
+def approve_service(request, service_id):
+    if request.method == "POST":
+        service = get_object_or_404(Service, id=service_id)
+        service.approval = 'approved'
+        service.save()
+        return redirect('pendingservices')
+
+def reject_service(request, service_id):
+    if request.method == "POST":
+        service = get_object_or_404(Service, id=service_id)
+        service.approval = 'not approved'
+        service.save()
+        return redirect('pendingservices')
+
+def users(request):
+    users = Profile.objects.all()
+    return render(request, 'users.html', {'users': users})
+
+def ban_user(request, user_id):
+    if request.method == "POST":
+        user = get_object_or_404(User, id=user_id)
+        user.delete()  # Remove o usuário e, por cascade, o Profile e o Provider (se existir)
+        return redirect('users')
 
 def myservices(request):
     user_profile = get_object_or_404(Profile, user=request.user)
@@ -21,9 +50,19 @@ def myservices(request):
     user_services = Service.objects.filter(provider=provider)
     return render(request, 'myservices.html', {'services': user_services})
 
+
+
 def categories(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('categories')
+    else:
+        form = CategoryForm()
+
     categories = Category.objects.all()
-    return render(request, 'categories.html', {'categories': categories})
+    return render(request, 'categories.html', {'categories': categories, 'form': form})
 
 def providers(request):
     providers = Provider.objects.all()
@@ -136,8 +175,8 @@ def services(request):
     category_id = request.GET.get('category', '0')
     sort_option = request.GET.get('sort', '0')
 
-    # Start with all services
-    services = Service.objects.all()
+    # Start with approved services only
+    services = Service.objects.filter(approval='approved')
 
     # Filter by search query
     if search_query:
