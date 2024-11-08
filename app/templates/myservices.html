@@ -1,7 +1,51 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    {% for service in services %}
-    {{ service.title }}
-    {% endfor %}
+    <div class="p-4">
+        {# Add New Service Button #}
+        <div class="flex justify-start mb-4">
+            <a href="/myservices/new" class="btn btn-primary text-white">Add New Service</a>
+        </div>
+
+        {# Services List #}
+        <div class="bg-base-200 rounded-lg p-4">
+            <div class="flex flex-wrap gap-4">
+                {% for service in services %}
+                    <div class="card bg-base-100 w-96 shadow-xl relative">
+                        {# Dropdown Button #}
+                        <div class="absolute top-2 right-2">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-white">•••</button>
+                                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-32 z-10">
+                                    <li><a href="/myservices/edit/{{ service.id }}">Edit</a></li>
+                                    <li><a href="/myservices/delete/{{ service.id }}" class="text-red-500">Delete</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {# Service Image #}
+                        {% if service.image %}
+                            <figure>
+                                <img src="{{ service.image.url }}" alt="{{ service.title }}" />
+                            </figure>
+                        {% else %}
+                            <figure>
+                                <img src="https://loremflickr.com/500/500" alt="{{ service.title }}" />
+                            </figure>
+                        {% endif %}
+
+                        {# Service Details #}
+                        <div class="card-body">
+                            <h2 class="card-title">{{ service.title }}</h2>
+                            <p>{{ service.description }}</p>
+                            <div class="card-actions justify-end">
+                                <div class="badge badge-outline">{{ service.category }}</div>
+                                <div class="badge badge-outline">{{ service.is_active }}</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 {% endblock %}

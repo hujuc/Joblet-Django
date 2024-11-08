@@ -34,6 +34,9 @@ urlpatterns = [
     path('booking/', views.booking, name='booking'),
     path('myorders/', views.myorders, name='myorders'),
     path('myservices/', views.myservices, name='myservices'),
+    path('myservices/edit/<int:service_id>/', views.edit_service, name='edit_service'),
+    path('myservices/delete/<int:service_id>/', views.delete_service, name='delete_service'),
+    path('myservices/new/', views.add_service, name='add_service'),
     path('categories/', views.categories, name='categories'),
     path('providers/', views.providers, name='providers'),
 ]

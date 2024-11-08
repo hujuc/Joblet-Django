@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="p-4 max-w-lg mx-auto text-center">
+    <h2 class="text-2xl font-bold mb-4 text-red-600">Delete Service</h2>
+    <p class="mb-6">Are you sure you want to delete the service <strong>{{ service.title }}</strong>?</p>
+
+    <form action="/myservices/delete/{{ service.id }}" method="POST">
+        <div class="flex justify-center gap-4">
+            <button type="submit" class="btn btn-error">Delete</button>
+            <a href="/myservices" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

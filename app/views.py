@@ -29,6 +29,58 @@ def providers(request):
     return render(request, 'providers.html', {'providers': providers})
 
 
+def edit_service(request, service_id):
+    service = Service.objects.get(pk=service_id)
+    categories = Category.objects.all()
+    if request.method == 'POST':
+        service.title = request.POST.get('title')
+        service.description = request.POST.get('description')
+        service.price = request.POST.get('price')  # Retrieve price from POST data
+        service.category_id = request.POST.get('category')
+        service.save()
+        return redirect('myservices')
+    return render(request, 'edit_service.html', {'service': service, 'categories': categories})
+
+from datetime import timedelta
+@login_required
+def add_service(request):
+    categories = Category.objects.all()
+    if request.method == 'POST':
+        # Retrieve form data
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        category_id = request.POST.get('category')
+        image = request.FILES.get('image')
+
+        # Convert duration to timedelta
+        duration_minutes = int(request.POST.get('duration', 0))
+        duration = timedelta(minutes=duration_minutes)
+
+        # Get the user profile
+        profile = Profile.objects.get(user=request.user)
+
+        # Create and save new service with default status "Pending Approval"
+        service = Service(
+            provider=profile,
+            title=title,
+            description=description,
+            price=price,
+            duration=duration,  # Save as timedelta
+            category_id=category_id,
+            is_active="Pending Approval",  # Set status to "Pending Approval"
+            image=image
+        )
+        service.save()
+
+        return redirect('myservices')
+
+    return render(request, 'add_service.html', {'categories': categories})
+def delete_service(request, service_id):
+    service = Service.objects.get(pk=service_id)
+    service.delete()
+    return redirect('myservices')
+
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
