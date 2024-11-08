@@ -2,6 +2,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
 from decimal import Decimal
+from datetime import datetime
 
 
 class Profile(models.Model):
@@ -40,6 +41,26 @@ class Provider(models.Model):
 
     def __str__(self):
         return self.profile.user.username
+
+
+
+class Chat(models.Model):
+    service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='chats')
+    client = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='client_chats')
+    provider = models.ForeignKey('Provider', on_delete=models.CASCADE, related_name='provider_chats')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Chat between {self.client.user.username} and {self.provider.profile.user.username} for {self.service.title}"
+
+class Message(models.Model):
+    chat = models.ForeignKey('Chat', on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Message from {self.sender.username} at {self.timestamp}"
 
 class Review(models.Model):
     provider = models.ForeignKey(Provider, related_name='reviews', on_delete=models.CASCADE)

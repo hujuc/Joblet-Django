@@ -12,15 +12,20 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from .models import Profile, Provider, Service, Category
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponseForbidden
 
 
 logger = logging.getLogger(__name__)
 
 def pendingservices(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return HttpResponseForbidden("You are not authorized to view this page.")
     services_pending = Service.objects.filter(approval='pending approval')
     return render(request, 'pendingservices.html', {'services_pending': services_pending})
 
 def approve_service(request, service_id):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return HttpResponseForbidden("You are not authorized to view this page.")
     if request.method == "POST":
         service = get_object_or_404(Service, id=service_id)
         service.approval = 'approved'
@@ -28,6 +33,8 @@ def approve_service(request, service_id):
         return redirect('pendingservices')
 
 def reject_service(request, service_id):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return HttpResponseForbidden("You are not authorized to view this page.")
     if request.method == "POST":
         service = get_object_or_404(Service, id=service_id)
         service.approval = 'not approved'
@@ -35,10 +42,14 @@ def reject_service(request, service_id):
         return redirect('pendingservices')
 
 def users(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return HttpResponseForbidden("You are not authorized to view this page.")
     users = Profile.objects.all()
     return render(request, 'users.html', {'users': users})
 
 def ban_user(request, user_id):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return HttpResponseForbidden("You are not authorized to view this page.")
     if request.method == "POST":
         user = get_object_or_404(User, id=user_id)
         user.delete()  # Remove o usuário e, por cascade, o Profile e o Provider (se existir)
@@ -53,6 +64,8 @@ def myservices(request):
 
 
 def categories(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return HttpResponseForbidden("You are not authorized to view this page.")
     if request.method == 'POST':
         form = CategoryForm(request.POST)
         if form.is_valid():
@@ -221,16 +234,23 @@ def about(request):
     return render(request, 'about.html')
 
 def profile(request, user_id):
+    # Obter o perfil do usuário pela ID fornecida
     user_profile = get_object_or_404(Profile, user_id=user_id)
 
+    # Tentar obter o provider associado ao perfil
     try:
         provider = Provider.objects.get(profile=user_profile)
+        is_provider = True
         avg_rating = provider.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
         reviews = provider.reviews.all().order_by('-created_at')
+        services = provider.services.filter(approval='approved')  # Obter apenas serviços aprovados
     except Provider.DoesNotExist:
+        is_provider = False
         avg_rating = 0
         reviews = []
+        services = []
 
+    # Formulário de avaliação
     if request.method == 'POST':
         form = ReviewForm(request.POST)
         if form.is_valid():
@@ -243,13 +263,18 @@ def profile(request, user_id):
     else:
         form = ReviewForm()
 
+    # Passar o contexto necessário
     context = {
         'profile': user_profile,
+        'is_provider': is_provider,
+        'services': services,  # Adicionar serviços no contexto
         'avg_rating': avg_rating,
         'reviews': reviews,
         'form': form,
     }
     return render(request, 'profile.html', context)
+
+
 
 def edit_profile(request, user_id):
     profile = get_object_or_404(Profile, user__id=user_id)
