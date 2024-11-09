@@ -48,7 +48,7 @@
 
                 <!-- User Actions -->
                 <div class="flex gap-2">
-                    <button class="btn btn-primary text-white">Contact</button>
+                    <a href="{% url 'message_thread' profile.user.id %}" class="btn btn-primary text-white">Message</a>
                     {% if user.is_authenticated and user == profile.user %}
                         <button class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.remove('hidden')">Edit Profile</button>
                     {% endif %}

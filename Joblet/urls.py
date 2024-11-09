@@ -44,6 +44,9 @@ urlpatterns = [
     path('reject-service/<int:service_id>/', views.reject_service, name='reject_service'),
     path('users/', views.users, name='users'),
     path('ban-user/<int:user_id>/', views.ban_user, name='ban_user'),
+    path('inbox/', views.inbox, name='inbox'),
+    path('message/<int:recipient_id>/', views.send_message, name='send_message'),
+    path('thread/<int:recipient_id>/', views.message_thread, name='message_thread'),
 ]
 
 if settings.DEBUG:

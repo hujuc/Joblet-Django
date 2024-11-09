@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="p-6">
+    <h2 class="text-2xl font-bold mb-4">Inbox</h2>
+    <ul class="list-none">
+        {% for message in messages %}
+            <li class="mb-4">
+                <a href="{% url 'message_thread' message.sender.id %}" class="block p-4 bg-base-200 rounded-lg shadow">
+                    <p class="font-semibold">{{ message.sender.user.username }}</p>
+                    <p class="text-gray-600">{{ message.content|truncatewords:10 }}</p>
+                    <small class="text-gray-500">{{ message.timestamp|date:"M d, Y H:i" }}</small>
+                </a>
+            </li>
+        {% empty %}
+            <p>No messages yet.</p>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

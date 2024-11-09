@@ -1,19 +1,20 @@
 import logging
-from django.db.models import Avg
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.shortcuts import render
-from django.contrib.auth import authenticate, login
+
 from django.contrib import messages
-from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm, CategoryForm, AddBalanceForm, \
-    ProviderForm
+from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
-from django.shortcuts import redirect
-from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Profile, Provider, Service, Category
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import render
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q
+
+from . import models
+from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm, CategoryForm, AddBalanceForm, \
+    ProviderForm, MessageForm
+from .models import Profile, Provider, Service, Category, Message
 
 logger = logging.getLogger(__name__)
 
@@ -280,7 +281,6 @@ def about(request):
 
 from django.shortcuts import redirect
 
-from decimal import Decimal
 
 def profile(request, user_id):
     # Get the user's profile
@@ -345,3 +345,54 @@ def profile(request, user_id):
         'add_balance_form': add_balance_form,
     }
     return render(request, 'profile.html', context)
+
+def send_message(request, recipient_id):
+    recipient = get_object_or_404(Profile, id=recipient_id)
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = request.user.profile  # Assuming Profile is linked to User
+            message.recipient = recipient
+            message.save()
+            return redirect('inbox')  # Redirect to the inbox or a relevant page
+    else:
+        form = MessageForm()
+
+    context = {
+        'form': form,
+        'recipient': recipient,
+    }
+    return render(request, 'send_message.html', context)
+
+def inbox(request):
+    messages = Message.objects.filter(recipient=request.user.profile).order_by('-timestamp')
+    context = {
+        'messages': messages,
+    }
+    return render(request, 'inbox.html', context)
+
+def message_thread(request, recipient_id):
+    recipient = get_object_or_404(Profile, id=recipient_id)
+    messages = Message.objects.filter(
+        (Q(sender=request.user.profile) & Q(recipient=recipient)) |
+        (Q(sender=recipient) & Q(recipient=request.user.profile))
+    ).order_by('timestamp')
+
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = request.user.profile
+            message.recipient = recipient
+            message.save()
+            return redirect('message_thread', recipient_id=recipient_id)
+    else:
+        form = MessageForm()
+
+    context = {
+        'messages': messages,
+        'form': form,
+        'recipient': recipient,
+    }
+    return render(request, 'message_thread.html', context)

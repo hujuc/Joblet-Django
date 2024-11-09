@@ -63,13 +63,14 @@ class Chat(models.Model):
         return f"Chat between {self.client.user.username} and {self.provider.profile.user.username} for {self.service.title}"
 
 class Message(models.Model):
-    chat = models.ForeignKey('Chat', on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
+    sender = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='received_messages')
+    content = models.TextField(default='')
+    timestamp = models.DateTimeField(auto_now=True)
+    is_read = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Message from {self.sender.username} at {self.timestamp}"
+        return f"From {self.sender.user.username} to {self.recipient.user.username}"
 
 class Review(models.Model):
     provider = models.ForeignKey(Provider, related_name='reviews', on_delete=models.CASCADE)
