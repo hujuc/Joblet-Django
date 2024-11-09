@@ -432,7 +432,6 @@ def message_thread(request, recipient_id):
     return render(request, 'message_thread.html', context)
 
 
-
 def edit_profile(request, user_id):
     profile = get_object_or_404(Profile, user__id=user_id)
 
@@ -498,3 +497,16 @@ def update_booking_status(request, booking_id):
         messages.info(request, "Esta reserva já foi concluída.")
 
     return redirect('profile', user_id=request.user.id)
+
+def user_chats(request):
+    profile = request.user.profile
+
+    # Get chats where the user is a customer or provider
+    customer_chats = Chat.objects.filter(booking__customer=profile).select_related('booking__service', 'booking__service__provider')
+    provider_chats = Chat.objects.filter(booking__service__provider__profile=profile).select_related('booking__customer')
+
+    context = {
+        'customer_chats': customer_chats,
+        'provider_chats': provider_chats,
+    }
+    return render(request, 'chats.html', context)

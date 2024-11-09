@@ -23,7 +23,7 @@
                         <ul class="menu menu-horizontal px-1 text-primary text-lg">
                             {% if user.profile.is_provider %}
                                 <li><a href="{% url 'myservices' %}">My Services</a></li>
-                                <li><a href="">Chat</a></li>
+                                <li><a href="{% url 'user_chats' %}">Chat</a></li>
                                 <li><a href="">Opportunities</a></li>
                             {% elif user.username == 'admin' %}
                                 <li><a href="{% url 'pendingservices' %}">Pending Services</a></li>
