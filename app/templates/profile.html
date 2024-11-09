@@ -188,7 +188,7 @@
                 {% endif %}
             </div>
 
-        <!-- List of Services (if provider) -->
+            <!-- List of Services (if provider) -->
             <h2 class="text-2xl font-semibold mt-6">Services Offered</h2>
             {% if services|length == 0 %}
                 <p class="text-gray-500 mt-2">This user has not added any services yet.</p>
@@ -222,6 +222,42 @@
             </div>
         {% endif %}
 
+        <!-- Statistics Section -->
+        <div class="mt-6">
+            <h2 class="text-2xl font-semibold">Statistics</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                <!-- Total Services Offered -->
+                <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold">Total Services Offered</h3>
+                    <p class="text-3xl font-semibold">{{ total_services }}</p>
+                </div>
+
+                <!-- Total Services Booked -->
+                <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold">Total Services Booked</h3>
+                    <p class="text-3xl font-semibold">{{ total_bookings }}</p>
+                </div>
+
+                <!-- Completed Services -->
+                <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold">Completed Services</h3>
+                    <p class="text-3xl font-semibold">{{ completed_bookings }}</p>
+                </div>
+
+                <!-- Cancelled Services -->
+                <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold">Cancelled Services</h3>
+                    <p class="text-3xl font-semibold">{{ cancelled_bookings }}</p>
+                </div>
+
+                <!-- In Progress Services -->
+                <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold">In Progress Services</h3>
+                    <p class="text-3xl font-semibold">{{ in_progress_bookings }}</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Reviews Section -->
         {% if is_provider %}
             <div class="form-control mb-8 mt-6 p-6 bg-base-200 rounded-lg">
@@ -234,7 +270,6 @@
                     {% endif %}
                 </div>
 
-                <!-- Reviews Section -->
                 <div class="space-y-4 mt-4">
                     {% for review in reviews %}
                         <div class="bg-white p-4 rounded-lg shadow-md">
@@ -462,8 +497,6 @@
 
                 </div>
             </div>
-        {% else %}
-            <p class="text-gray-500 mt-6">No bookings found.</p>
         {% endif %}
 
     </div>
