@@ -1,8 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from app.models import Profile, Review, Provider, Category
-
+from app.models import Profile, Review, Provider, Category, Service
 
 from django.db import transaction
 
@@ -167,3 +166,26 @@ class CategoryForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter category name'}),
             'description': forms.Textarea(attrs={'class': 'textarea textarea-bordered w-full', 'rows': 3, 'placeholder': 'Enter category description'}),
         }
+
+class ServiceForm(forms.ModelForm):
+    class Meta:
+        model = Service
+        fields = ['category', 'title', 'description', 'price', 'image']
+        widgets = {
+            'category': forms.Select(attrs={'class': 'select select-bordered w-full'}),
+            'title': forms.TextInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter service title'}),
+            'description': forms.Textarea(attrs={'class': 'textarea textarea-bordered w-full', 'rows': 3, 'placeholder': 'Enter service description'}),
+            'price': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter service price'}),
+            'image': forms.FileInput(attrs={'class': 'file-input file-input-bordered w-full', 'accept': 'image/*'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        self.fields['category'].queryset = Category.objects.all()
+
+    def save(self, commit=True):
+        service = super().save(commit=False)
+        if commit:
+            service.save()
+        return service

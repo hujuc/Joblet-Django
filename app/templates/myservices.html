@@ -10,6 +10,9 @@
     <!-- Services List -->
     <div class="bg-base-200 rounded-lg p-4">
         <div class="flex flex-wrap gap-4">
+            {% if not services %}
+                <p class="text-gray-500">You have not created any services yet. Click the button above to add a new service.</p>
+            {% endif %}
             {% for service in services %}
                 <div class="card bg-base-100 w-96 shadow-xl relative">
                     <!-- Dropdown Button -->
@@ -82,7 +85,7 @@
                 <input type="file" id="image" name="image" class="file-input file-input-bordered w-full">
             </div>
             <div class="flex justify-end">
-                <button type="submit" class="btn btn-primary">Create Service</button>
+                <button type="submit" class="btn btn-primary text-white">Create Service</button>
             </div>
         </form>
     </div>
@@ -141,7 +144,7 @@
                 document.getElementById('edit-price').value = data.price;
                 if (data.image) {
                     document.getElementById('current-image').innerHTML = `
-                        <p>Current Image:</p><img src="${data.image}" class="w-32 h-32 mt-2" />
+                        <p>Current Image:</p><img src="${data.image}" class="w-72 mt-2" />
                     `;
                 }
                 document.getElementById('edit-service-form').action = `/myservices/edit/${serviceId}/`;
