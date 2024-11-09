@@ -215,7 +215,12 @@ def services(request):
     sort_option = request.GET.get('sort', '0')
 
     # Start with approved services only
-    services = Service.objects.filter(approval='approved')
+    services = Service.objects.filter(approval='approved').select_related(
+        'provider',
+        'provider__profile',
+        'provider__profile__user',
+        'category'
+    ).prefetch_related('provider__reviews')
 
     # Filter by search query
     if search_query:
