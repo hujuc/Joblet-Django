@@ -24,21 +24,24 @@
                         <p class="text-sm text-gray-500">{{ profile.location|default:"Location not specified" }}</p>
 
                         <!-- Average Rating -->
-                        {% if avg_rating %}
-                            <div class="flex items-center mt-2">
-                                <span class="text-yellow-500 text-xl font-semibold">{{ avg_rating|floatformat:1 }}/5</span>
-                                <div class="flex ml-2">
-                                    {% for i in "12345" %}
-                                        {% if i <= avg_rating|floatformat:0 %}
-                                            <span class="text-yellow-500 text-lg">★</span>
-                                        {% else %}
-                                            <span class="text-gray-300 text-lg">★</span>
-                                        {% endif %}
-                                    {% endfor %}
+                        {% if profile.is_provider %}
+                            {# If the user has ratings, display the average rating #}
+                            {% if avg_rating %}
+                                <div class="flex items-center mt-2">
+                                    <span class="text-yellow-500 text-xl font-semibold">{{ avg_rating|floatformat:1 }}/5</span>
+                                    <div class="flex ml-2">
+                                        {% for i in "12345" %}
+                                            {% if i <= avg_rating|floatformat:0 %}
+                                                <span class="text-yellow-500 text-lg">★</span>
+                                            {% else %}
+                                                <span class="text-gray-300 text-lg">★</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
                                 </div>
-                            </div>
-                        {% else %}
-                            <p class="text-gray-500 text-sm mt-2">No ratings yet</p>
+                            {% else %}
+                                <p class="text-gray-500 text-sm mt-2">No ratings yet</p>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
@@ -66,61 +69,6 @@
             {% endif %}
         </div>
 
-        <div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
-            <div class="bg-base-200 rounded-lg w-[30rem] p-6 relative">
-                <h2 class="text-2xl font-bold mb-4">Edit Profile</h2>
-
-                <form method="POST" action="{% url 'edit_profile' profile.user.id %}" enctype="multipart/form-data">
-                    {% csrf_token %}
-
-                    <!-- Profile Image Upload -->
-                    <div class="form-control mb-4">
-                        <label class="label font-semibold">Profile Image</label>
-                        <div class="flex items-center gap-4">
-                            <input type="file" name="avatar" accept="image/*" class="file-input file-input-bordered w-full">
-                            {% if profile.avatar %}
-                                <img src="{{ profile.avatar.url }}" alt="Current Profile Image" class="w-16 h-16 rounded-full">
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- About Me Section -->
-                    <div class="form-control mb-4">
-                        <label class="label font-semibold">About Me</label>
-                        <textarea name="about" class="textarea textarea-bordered w-full" placeholder="Tell us about yourself">{{ profile.about|default_if_none:"" }}</textarea>
-                    </div>
-
-                    <!-- Social Media Links Section -->
-                    <h3 class="text-xl font-semibold mt-4">Social Media Links</h3>
-                    <div class="form-control mb-4">
-                        <label class="label font-semibold">Contact Email</label>
-                        <input type="email" name="contact_email" value="{{ profile.contact_email|default_if_none:'' }}" placeholder="Enter your email" class="input input-bordered w-full">
-                    </div>
-                    <div class="form-control mb-4">
-                        <label class="label font-semibold">LinkedIn</label>
-                        <input type="url" name="linkedin" value="{{ profile.linkedin|default_if_none:'' }}" placeholder="https://linkedin.com/in/username" class="input input-bordered w-full">
-                    </div>
-                    <div class="form-control mb-4">
-                        <label class="label font-semibold">Twitter</label>
-                        <input type="url" name="twitter" value="{{ profile.twitter|default_if_none:'' }}" placeholder="https://twitter.com/username" class="input input-bordered w-full">
-                    </div>
-                    <div class="form-control mb-4">
-                        <label class="label font-semibold">Facebook</label>
-                        <input type="url" name="facebook" value="{{ profile.facebook|default_if_none:'' }}" placeholder="https://facebook.com/username" class="input input-bordered w-full">
-                    </div>
-
-                    <!-- Save & Cancel Buttons -->
-                    <div class="flex justify-end gap-2">
-                        <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.add('hidden')">Cancel</button>
-                        <button type="submit" class="btn btn-primary text-white">Save Changes</button>
-                    </div>
-                </form>
-
-                <!-- Close Modal Button -->
-                <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800" onclick="document.getElementById('editModal').classList.add('hidden')">✕</button>
-            </div>
-        </div>
-
 
         {% if user.is_authenticated and user == profile.user %}
             <!-- Modal para adicionar saldo -->
@@ -128,21 +76,14 @@
                 <div class="bg-base-200 rounded-lg w-[30rem] p-6 relative">
                     <h2 class="text-2xl font-bold mb-4">Add Balance</h2>
 
-                    <form method="POST" action="">
+                    <form method="POST">
                         {% csrf_token %}
-                        <div class="form-group mb-4">
-                            <label for="balance_amount" class="font-semibold">Amount:</label>
-                            <input
-                                    type="number"
-                                    id="balance_amount"
-                                    name="balance_amount"
-                                    step="0.01"
-                                    min="0"
-                                    class="input input-bordered w-full"
-                                    required
-                            />
+                        <div class="form-group">
+                            <label for="{{ add_balance_form.amount.id_for_label }}" class="font-semibold">Amount:</label>
+                            {{ add_balance_form.amount }}
                         </div>
-                        <div class="flex justify-end gap-2">
+
+                        <div class="flex justify-end gap-2 mt-4">
                             <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('addBalanceModal').classList.add('hidden')">
                                 Cancel
                             </button>
@@ -160,8 +101,7 @@
             </div>
         {% endif %}
 
-
-        <!-- Profile Stats -->
+        <!-- Profile Details -->
         {% if profile.contact_email or profile.linkedin or profile.twitter or profile.facebook %}
             <div class="mt-6">
                 <h2 class="text-2xl font-semibold">Contact & Social Links</h2>
@@ -185,14 +125,19 @@
         <!-- Profile About Section -->
         {% if is_provider %}
             <div class="mt-6">
-                <h2 class="text-2xl font-semibold">About Me</h2>
-                <p style="white-space: pre-wrap;" class="text-justify">{{ profile.about|default:"This user has not added an about section yet." }}</p>
+                <h2 class="text-2xl font-semibold mt-6">About Me</h2>
+                {% if profile.provider.about %}
+                    <p style="white-space: pre-wrap;" class="text-justify">{{ profile.provider.about }}</p>
+                {% else %}
+                    <p class="text-gray-500 mt-2">This user has not added any information about themselves yet.</p>
+                {% endif %}
             </div>
-        {% endif %}
 
         <!-- List of Services (if provider) -->
-        {% if is_provider %}
             <h2 class="text-2xl font-semibold mt-6">Services Offered</h2>
+            {% if services|length == 0 %}
+                <p class="text-gray-500 mt-2">This user has not added any services yet.</p>
+            {% endif %}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                 {% for service in services %}
                     <div class="card bg-base-200 shadow-md p-4 cursor-pointer z-0" onclick="document.getElementById('serviceModal{{ service.id }}').classList.remove('hidden')">
@@ -248,8 +193,28 @@
                     {% for review in reviews %}
                         <div class="bg-white p-4 rounded-lg shadow-md">
                             <div class="flex items-center justify-between mb-2">
-                                <strong class="text-lg text-primary">{{ review.reviewer.user.username }}</strong>
-                                <span class="text-yellow-500 text-lg">{{ review.rating }}/5</span>
+                                <a class="flex items-center gap-2" href="{% url 'profile' review.reviewer.user.id %}">
+                                    {% if review.reviewer.user.profile.avatar %}
+                                        <img src="{{ review.reviewer.user.profile.avatar.url }}" alt="{{ review.reviewer.user.username }}" class="w-8 h-8 rounded-full">
+                                    {% else %}
+                                        <span class="text-white text-2xl font-semibold bg-primary w-8 h-8 flex items-center justify-center">
+                                            {{ review.reviewer.user.username|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
+                                    <span class="font-semibold">{{ review.reviewer.user.username }}</span>
+                                </a>
+                                <div class="flex items-center mt-2">
+                                    <span class="text-yellow-500 text-xl font-semibold">{{ review.rating }}/5</span>
+                                    <div class="flex ml-2">
+                                        {% for i in "12345" %}
+                                            {% if i <= review.rating|floatformat:0 %}
+                                                <span class="text-yellow-500 text-lg">★</span>
+                                            {% else %}
+                                                <span class="text-gray-300 text-lg">★</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </div>
                             <p class="mb-2">{{ review.comment }}</p>
                             <small class="text-gray-500">Reviewed on {{ review.created_at|date:"M d, Y" }}</small>
@@ -261,35 +226,151 @@
             </div>
         {% endif %}
 
+        <!-- Edit Profile Modal -->
+        <div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-base-200 rounded-lg w-[30rem] max-h-[90vh] p-6 overflow-y-auto relative">
+                <h2 class="text-2xl font-bold mb-4">Edit Profile</h2>
+
+                <!-- Check if the user is a provider or not -->
+                {% if is_provider %}
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+
+                        <!-- Avatar -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">Profile Image</label>
+                            <div class="flex items-center gap-4">
+                                {{ provider_form.avatar }}
+                                {% if profile.avatar %}
+                                    <img src="{{ profile.avatar.url }}" alt="Current Profile Image" class="w-16 h-16 rounded-full">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.phone.label }}</label>
+                            {{ provider_form.phone }}
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.location.label }}</label>
+                            {{ provider_form.location }}
+                        </div>
+
+                        <!-- About -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.about.label }}</label>
+                            {{ provider_form.about }}
+                        </div>
+
+                        <!-- Contact Email -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.contact_email.label }}</label>
+                            {{ provider_form.contact_email }}
+                        </div>
+
+                        <!-- LinkedIn -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.linkedin.label }}</label>
+                            {{ provider_form.linkedin }}
+                        </div>
+
+                        <!-- Twitter -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.twitter.label }}</label>
+                            {{ provider_form.twitter }}
+                        </div>
+
+                        <!-- Facebook -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.facebook.label }}</label>
+                            {{ provider_form.facebook }}
+                        </div>
+
+                        <!-- Save & Cancel Buttons -->
+                        <div class="flex justify-end gap-2">
+                            <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.add('hidden')">Cancel</button>
+                            <button type="submit" name="update_provider" class="btn btn-primary text-white">Save Changes</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Profile Image Upload -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">Profile Image</label>
+                            <div class="flex items-center gap-4">
+                                {{ profile_form.avatar }}
+                                {% if profile.avatar %}
+                                    <img src="{{ profile.avatar.url }}" alt="Current Profile Image" class="w-16 h-16 rounded-full">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ profile_form.phone.label }}</label>
+                            {{ profile_form.phone }}
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ profile_form.location.label }}</label>
+                            {{ profile_form.location }}
+                        </div>
+
+                        <!-- Save & Cancel Buttons -->
+                        <div class="flex justify-end gap-2">
+                            <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.add('hidden')">Cancel</button>
+                            <button type="submit" name="update_profile" class="btn btn-primary text-white">Save Changes</button>
+                        </div>
+                    </form>
+                {% endif %}
+                <!-- Close Modal Button -->
+                <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800" onclick="document.getElementById('editModal').classList.add('hidden')">✕</button>
+            </div>
+        </div>
+
         <!-- Add Review Modal -->
         <div id="reviewModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
             <div class="bg-base-200 rounded-lg w-[30rem] max-h-[90vh] p-6 overflow-y-auto relative">
-                <h2 class="text-2xl font-bold mb-4">Add Review</h2>
-                <form method="POST" action="">
+                <h2 class="text-2xl font-bold mb-4">Leave a Review</h2>
+                <form method="POST">
                     {% csrf_token %}
-                    <div class="form-group mb-4 flex items-center">
-                        <label for="id_rating" class="font-semibold mr-4">Rate:</label>
-                        <div class="rating rating-sm rating-half flex">
-                            <input type="radio" name="rating" value="0.5" class="mask mask-star-2 mask-half-1 bg-yellow-500" />
-                            <input type="radio" name="rating" value="1" class="mask mask-star-2 mask-half-2 bg-yellow-500" />
-                            <input type="radio" name="rating" value="1.5" class="mask mask-star-2 mask-half-1 bg-yellow-500" />
-                            <input type="radio" name="rating" value="2" class="mask mask-star-2 mask-half-2 bg-yellow-500" />
-                            <input type="radio" name="rating" value="2.5" class="mask mask-star-2 mask-half-1 bg-yellow-500" />
-                            <input type="radio" name="rating" value="3" class="mask mask-star-2 mask-half-2 bg-yellow-500" />
-                            <input type="radio" name="rating" value="3.5" class="mask mask-star-2 mask-half-1 bg-yellow-500" />
-                            <input type="radio" name="rating" value="4" class="mask mask-star-2 mask-half-2 bg-yellow-500" />
-                            <input type="radio" name="rating" value="4.5" class="mask mask-star-2 mask-half-1 bg-yellow-500" />
-                            <input type="radio" name="rating" value="5" class="mask mask-star-2 mask-half-2 bg-yellow-500" checked />
+
+                    <!-- Custom Rating Input -->
+                    <div class="form-group">
+                        <label for="id_rating" class="font-semibold">Rate:</label>
+                        <div class="rating rating-sm rating-half">
+                            <input type="radio" name="rating" value="0.5" class="mask mask-star-2 mask-half-1 bg-green-500" />
+                            <input type="radio" name="rating" value="1" class="mask mask-star-2 mask-half-2 bg-green-500" />
+                            <input type="radio" name="rating" value="1.5" class="mask mask-star-2 mask-half-1 bg-green-500" />
+                            <input type="radio" name="rating" value="2" class="mask mask-star-2 mask-half-2 bg-green-500" />
+                            <input type="radio" name="rating" value="2.5" class="mask mask-star-2 mask-half-1 bg-green-500" />
+                            <input type="radio" name="rating" value="3" class="mask mask-star-2 mask-half-2 bg-green-500" />
+                            <input type="radio" name="rating" value="3.5" class="mask mask-star-2 mask-half-1 bg-green-500" />
+                            <input type="radio" name="rating" value="4" class="mask mask-star-2 mask-half-2 bg-green-500" />
+                            <input type="radio" name="rating" value="4.5" class="mask mask-star-2 mask-half-1 bg-green-500" />
+                            <input type="radio" name="rating" value="5" class="mask mask-star-2 mask-half-2 bg-green-500" checked="checked" />
                         </div>
                     </div>
 
-                    <div class="form-group mb-4">
-                        <label for="id_comment" class="font-semibold">Comment:</label>
-                        <textarea name="comment" id="id_comment" class="textarea textarea-bordered w-full" rows="4"></textarea>
+                    <!-- Comment Input -->
+                    <div class="form-group">
+                        {{ review_form.comment.label_tag }}
+                        {{ review_form.comment }}
                     </div>
+
+                    <!-- Buttons -->
                     <div class="flex justify-end gap-2">
-                        <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('reviewModal').classList.add('hidden')">Cancel</button>
-                        <button type="submit" class="btn btn-primary text-white" name="review">Submit</button>
+                        <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('reviewModal').classList.add('hidden')">
+                            Cancel
+                        </button>
+                        <button type="submit" name="add_review" class="btn btn-primary text-white">Submit</button>
                     </div>
                 </form>
             </div>
