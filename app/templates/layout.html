@@ -54,15 +54,15 @@
                                 </div>
                                 <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
                                     <li><a href="{% url 'profile' user.id %}" class="justify-between">Profile</a></li>
+                                    {% if user.username != 'admin' and not user.is_provider %}
+                                        <li><a href="{% url 'myorders' %}">My Orders</a></li>
+                                    {% endif %}
                                     <li>
                                         <a href="#" onclick="document.getElementById('logout-form').submit()">Logout</a>
                                         <form id="logout-form" action="{% url 'logout' %}" method="POST" class="hidden">
                                             {% csrf_token %}
                                         </form>
                                     </li>
-                                    {% if user.username != 'admin' and not user.is_provider %}
-                                        <li><a href="{% url 'myorders' %}">My Orders</a></li>
-                                    {% endif %}
                                 </ul>
                             </div>
                         </div>

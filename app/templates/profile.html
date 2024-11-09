@@ -48,7 +48,6 @@
 
                 <!-- User Actions -->
                 <div class="flex gap-2">
-                    <a href="{% url 'message_thread' profile.user.id %}" class="btn btn-primary text-white">Message</a>
                     {% if user.is_authenticated and user == profile.user %}
                         <button class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.remove('hidden')">Edit Profile</button>
                     {% endif %}
@@ -126,7 +125,6 @@
         </div>
 
         <!-- Balance Modal -->
-
         {% if user.is_authenticated and user == profile.user %}
             <div id="addBalanceModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
                 <div class="bg-base-200 rounded-lg w-[30rem] p-6 relative">
@@ -197,40 +195,29 @@
             {% endif %}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                 {% for service in services %}
-                    <div class="card bg-base-200 shadow-md p-4 cursor-pointer z-0" onclick="document.getElementById('serviceModal{{ service.id }}').classList.remove('hidden')">
-                        <h3 class="text-lg font-bold">{{ service.title }}</h3>
-                        <p class="text-sm text-gray-600 mt-2">{{ service.description|slice:":100" }}...</p>
-                        <div class="flex justify-between items-center mt-4">
-                            <span class="text-primary font-semibold">${{ service.price }}</span>
-                            <span class="badge badge-outline">{{ service.category.name }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Modal for Service Details and Booking -->
-                    <div id="serviceModal{{ service.id }}" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
-                        <div class="bg-base-200 rounded-lg w-[90%] md:w-[40rem] max-h-[90vh] p-6 overflow-y-auto relative">
-                            <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800" onclick="document.getElementById('serviceModal{{ service.id }}').classList.add('hidden')">✕</button>
-                            <div>
-                                {% if service.image %}
-                                    <img src="{{ service.image.url }}" alt="{{ service.title }}" class="rounded-lg mb-4 w-full max-h-60 object-cover">
-                                {% endif %}
-                                <h2 class="text-2xl font-bold text-left">{{ service.title }}</h2>
-                                <p class="text-gray-600 mt-4 text-left">{{ service.description }}</p>
-                                <div class="flex justify-between items-center mt-4">
-                                    <span class="text-primary font-semibold text-lg">${{ service.price }}</span>
-                                    <span class="badge badge-outline">{{ service.category.name }}</span>
+                    <a href="{% url 'service_detail' service.id %}" class="group">
+                        <div class="card bg-base-100 shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                            {% if service.image %}
+                                <img src="{{ service.image.url }}" alt="{{ service.title }}" class="w-full h-40 object-cover">
+                            {% else %}
+                                <div class="w-full h-40 bg-gray-200 flex items-center justify-center">
+                                    <span class="text-gray-500">No Image</span>
+                                </div>
+                            {% endif %}
+                            <div class="border-b px-4 py-3 flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-500 text-sm">{{ service.created_at|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-primary font-semibold">${{ service.price|floatformat:2 }}</span>
                                 </div>
                             </div>
-                            <!-- Booking Form -->
-                            <div class="flex flex-col justify-end mt-6">
-                                <form method="POST" action="{% url 'book_service' service.id %}">
-                                    {% csrf_token %}
-                                    <input type="datetime-local" name="scheduled_time" required class="input input-bordered w-full mb-2">
-                                    <button type="submit" class="btn btn-secondary text-white w-full">Book</button>
-                                </form>
+                            <div class="p-4">
+                                <h3 class="text-lg font-semibold">{{ service.title }}</h3>
+                                <p class="text-sm text-gray-500">{{ service.description|truncatewords:15 }}</p>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 {% endfor %}
             </div>
         {% endif %}
