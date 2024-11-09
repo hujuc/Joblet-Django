@@ -5,6 +5,15 @@
     Chat for Booking: {{ booking.service.title }}
 </h2>
 
+<!-- Booking Details -->
+<div class="bg-base-200 p-4 rounded-lg mb-6 shadow-md">
+    <h3 class="text-lg font-semibold">Booking Details</h3>
+    <p class="text-sm"><strong>Service Provider:</strong> {{ booking.service.provider.profile.user.username }}</p>
+    <p class="text-sm"><strong>Scheduled Time:</strong> {{ booking.scheduled_time|date:"M d, Y H:i" }}</p>
+    <p class="text-sm"><strong>Details:</strong> {{ booking.details }}</p>
+</div>
+
+<!-- Chat Messages -->
 <div class="bg-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto chat-messages">
     {% for message in messages %}
         <div class="mb-4 {% if message.sender == request.user.profile %}text-right{% else %}text-left{% endif %}">

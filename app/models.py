@@ -115,13 +115,20 @@ class Service(models.Model):
         return self.title
 
 class Booking(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     customer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='bookings')
     scheduled_time = models.DateTimeField()
     details = models.TextField(blank=True, null=True)
     status = models.CharField(
-        max_length=10,
-        choices=[('pending', 'Pending'), ('completed', 'Completed'), ('cancelled', 'Cancelled')],
+        max_length=12,
+        choices=STATUS_CHOICES,
         default='pending'
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -130,4 +137,4 @@ class Booking(models.Model):
     cancelled_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return f"Booking {self.id} for {self.service.title} by {self.customer.user.username}"
+        return f"{self.service.title} - {self.customer.user.username} - {self.status}"

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Q, Avg
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_http_methods
 
@@ -204,9 +205,23 @@ def home(request):
     return render(request, 'index.html')
 
 def myorders(request):
-    return render(request, 'myorders.html')
+    # Ensure the user is authenticated
+    if not request.user.is_authenticated:
+        return redirect('login')  # Redirect to login if the user is not logged in
 
-from django.db.models import Avg, Q
+    # Get bookings grouped by status
+    pending_bookings = Booking.objects.filter(customer=request.user.profile, status='pending').select_related('service', 'service__provider')
+    in_progress_bookings = Booking.objects.filter(customer=request.user.profile, status='in_progress').select_related('service', 'service__provider')
+    completed_bookings = Booking.objects.filter(customer=request.user.profile, status='completed').select_related('service', 'service__provider')
+    cancelled_bookings = Booking.objects.filter(customer=request.user.profile, status='cancelled').select_related('service', 'service__provider')
+
+    context = {
+        'pending_bookings': pending_bookings,
+        'in_progress_bookings': in_progress_bookings,
+        'completed_bookings': completed_bookings,
+        'cancelled_bookings': cancelled_bookings,
+    }
+    return render(request, 'myorders.html', context)
 
 def services(request):
     # Get filter parameters from request
@@ -354,7 +369,6 @@ def chat_view(request, booking_id):
     if request.user.profile not in [booking.customer, booking.service.provider.profile]:
         return redirect('home')
 
-    # Get messages for the chat
     messages = chat.messages.order_by('timestamp')
 
     if request.method == "POST":
@@ -364,19 +378,20 @@ def chat_view(request, booking_id):
             message.chat = chat
             message.sender = request.user.profile
             message.recipient = (
-                booking.customer if request.user.profile == booking.service.provider.profile else booking.service.provider.profile
+                booking.service.provider.profile
+                if request.user.profile == booking.customer
+                else booking.customer
             )
             message.save()
             return redirect('chat_view', booking_id=booking.id)
-
     else:
         form = MessageForm()
 
     context = {
         'chat': chat,
+        'booking': booking,  # Pass the booking object for details
         'messages': messages,
         'form': form,
-        'booking': booking,
     }
     return render(request, 'chat.html', context)
 
@@ -399,12 +414,12 @@ def send_message(request, recipient_id):
     }
     return render(request, 'send_message.html', context)
 
-def inbox(request):
-    messages = Message.objects.filter(recipient=request.user.profile).order_by('-timestamp')
-    context = {
-        'messages': messages,
-    }
-    return render(request, 'inbox.html', context)
+# def inbox(request):
+#     messages = Message.objects.filter(recipient=request.user.profile).order_by('-timestamp')
+#     context = {
+#         'messages': messages,
+#     }
+#     return render(request, 'inbox.html', context)
 
 def message_thread(request, recipient_id):
     recipient = get_object_or_404(Profile, id=recipient_id)
