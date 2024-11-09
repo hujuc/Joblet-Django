@@ -29,7 +29,8 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('profile/<int:user_id>/', views.profile, name='profile'),
     path('services/', views.services, name='services'),
-    path('service/<int:service_id>/', views.service_detail, name='service'),
+    path('service/<int:service_id>/', views.service_detail, name='service_detail'),
+    path('service/<int:service_id>/book/', views.book_service, name='book_service'),
     path('booking/', views.booking, name='booking'),
     path('myorders/', views.myorders, name='myorders'),
     path('myservices/', views.myservices, name='myservices'),
@@ -47,6 +48,14 @@ urlpatterns = [
     path('inbox/', views.inbox, name='inbox'),
     path('message/<int:recipient_id>/', views.send_message, name='send_message'),
     path('thread/<int:recipient_id>/', views.message_thread, name='message_thread'),
+    path('edit_profile/<int:user_id>/', views.edit_profile, name='edit_profile'),
+    path('update-booking-status/<int:booking_id>/', views.update_booking_status, name='update_booking_status'),
+    path('notifications/', views.notifications, name='notifications'),
+    path('notifications/approve/<int:notification_id>/', views.approve_booking, name='approve_booking'),
+    path('notifications/reject/<int:notification_id>/', views.reject_booking, name='reject_booking'),
+    path('notifications/read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
+    # path('chat/<int:service_id>/', views.chat, name='chat'),path('book/<int:service_id>/', views.book_service, name='book_service'),
+
 ]
 
 if settings.DEBUG:

@@ -114,8 +114,29 @@ class Service(models.Model):
 class Booking(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     customer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='bookings')
-    date = models.DateTimeField()
-    status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('completed', 'Completed'), ('cancelled', 'Cancelled')])
+    scheduled_time = models.DateTimeField()
+    details = models.TextField(blank=True, null=True)
+    status = models.CharField(
+        max_length=10,
+        choices=[('pending', 'Pending'), ('completed', 'Completed'), ('cancelled', 'Cancelled')],
+        default='pending'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted_at = models.DateTimeField(blank=True, null=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    cancelled_at = models.DateTimeField(blank=True, null=True)
+    #chat = models.OneToOneField('Chat', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return f"{self.service.title} - {self.customer.user.username} - {self.status}"
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+    action_required = models.BooleanField(default=False)  # Novo campo para indicar ações pendentes
+
+    def __str__(self):
+        return f"Notification for {self.recipient.user.username} - {'Read' if self.read else 'Unread'}"

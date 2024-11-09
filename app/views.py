@@ -1,20 +1,15 @@
 import logging
 
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
-from django.contrib.auth import logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.http import HttpResponseForbidden
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_http_methods
-from django.db.models import Q
 
-from . import models
 from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm, CategoryForm, AddBalanceForm, \
-    ProviderForm, MessageForm
-from .models import Profile, Provider, Service, Category, Message
+    ProviderForm, MessageForm, BookingForm
+from .models import Profile, Provider, Service, Category, Message, Booking, Notification
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +143,9 @@ def delete_service(request, service_id):
     service.delete()
     return redirect('myservices')
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
+
+
 def get_service_data(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
     categories = Category.objects.all()
@@ -262,14 +259,16 @@ def services(request):
 
 
 def service_detail(request, service_id):
-    service = get_object_or_404(Service.objects.select_related('provider__profile__user').prefetch_related('provider__reviews'), id=service_id)
+    service = get_object_or_404(Service, id=service_id, is_active=True, approval='approved')
 
     # Calcular a média das avaliações do provedor
     avg_rating = service.provider.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
+    booking_form = BookingForm()
 
     context = {
         'service': service,
-        'avg_rating': avg_rating,  # Passar o avg_rating para o template
+        'avg_rating': avg_rating,
+        'booking_form': booking_form,
     }
     return render(request, 'service_detail.html', context)
 
@@ -278,9 +277,6 @@ def booking(request):
 
 def about(request):
     return render(request, 'about.html')
-
-from django.shortcuts import redirect
-
 
 def profile(request, user_id):
     # Get the user's profile
@@ -293,6 +289,8 @@ def profile(request, user_id):
         provider_form = ProviderForm(instance=user_profile.provider)
     review_form = ReviewForm()
     add_balance_form = AddBalanceForm()
+
+    booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-date')
 
     # Get the provider instance if it exists
     provider = user_profile.provider if hasattr(user_profile, 'provider') else None
@@ -343,6 +341,7 @@ def profile(request, user_id):
         'provider_form': provider_form,
         'review_form': review_form,
         'add_balance_form': add_balance_form,
+        'booking_history': booking_history if request.user == user_profile.user else None,
     }
     return render(request, 'profile.html', context)
 
@@ -396,3 +395,132 @@ def message_thread(request, recipient_id):
         'recipient': recipient,
     }
     return render(request, 'message_thread.html', context)
+
+
+
+def edit_profile(request, user_id):
+    profile = get_object_or_404(Profile, user__id=user_id)
+
+    # Ensure only the profile owner can edit
+    if request.user != profile.user:
+        return redirect('profile', user_id=user_id)
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile', user_id=user_id)
+    else:
+        form = ProfileForm(instance=profile)
+
+    return render(request, 'profile.html', {'form': form, 'profile': profile})
+
+@login_required
+def book_service(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+
+    if request.method == "POST":
+        form = BookingForm(request.POST)
+        if form.is_valid():
+            # Create booking
+            booking = form.save(commit=False)
+            booking.service = service
+            booking.customer = request.user.profile  # Assuming Profile is linked to User
+            booking.save()
+
+            # Notify the provider
+            Notification.objects.create(
+                recipient=service.provider.profile,
+                message=f"{request.user.username} has booked your service '{service.title}'.",
+                booking=booking,
+                action_required=True
+            )
+            messages.success(request, "Booking created successfully!")
+            return redirect('service_detail', service_id=service_id)
+        else:
+            messages.error(request, "Invalid booking details.")
+            return redirect('service_detail', service_id=service_id)
+
+    return redirect('service_detail', service_id=service_id)
+
+
+@login_required
+def update_booking_status(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    if request.user.profile != booking.customer:
+        messages.error(request, "Você não tem permissão para alterar o status desta reserva.")
+        return redirect('profile', user_id=request.user.id)
+
+    if not booking.approved_by_provider:
+        messages.warning(request, "Esta reserva ainda não foi aprovada pelo provedor.")
+        return redirect('profile', user_id=request.user.id)
+
+    if booking.status != 'completed':
+        booking.status = 'completed'
+        booking.save()
+
+        provider_profile = booking.service.provider.profile
+        provider_profile.wallet += booking.service.price
+        provider_profile.save()
+
+        messages.success(request, "Status da reserva atualizado para 'concluído' e valor depositado na carteira.")
+    else:
+        messages.info(request, "Esta reserva já foi concluída.")
+
+    return redirect('profile', user_id=request.user.id)
+@login_required
+def notifications(request):
+    user_profile = Profile.objects.get(user=request.user)
+    notifications = user_profile.notifications.order_by('-created_at')
+    return render(request, 'notifications.html', {'notifications': notifications})
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
+    notification.read = True
+    notification.save()
+    return redirect('notifications')
+
+
+@login_required
+def approve_booking(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
+
+    if not notification.booking:
+        messages.error(request, "Reserva não encontrada para esta notificação.")
+        return redirect('notifications')
+
+    # Aprova a reserva associada
+    booking = notification.booking
+    booking.approved_by_provider = True
+    booking.save()
+
+    # Marca a notificação como lida
+    notification.read = True
+    notification.action_required = False
+    notification.save()
+
+    messages.success(request, "Reserva aprovada com sucesso!")
+    return redirect('notifications')
+
+@login_required
+def reject_booking(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
+
+    if not notification.booking:
+        messages.error(request, "Reserva não encontrada para esta notificação.")
+        return redirect('notifications')
+
+    # Rejeita a reserva associada
+    booking = notification.booking
+    booking.status = 'cancelled'
+    booking.save()
+
+    # Marca a notificação como lida
+    notification.read = True
+    notification.action_required = False
+    notification.save()
+
+    messages.success(request, "Reserva rejeitada com sucesso!")
+    return redirect('notifications')

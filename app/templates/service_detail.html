@@ -45,8 +45,8 @@
                                     <img src="{{ service.provider.profile.avatar.url }}" alt="{{ service.provider.profile.user.username }}">
                                 {% else %}
                                     <span class="text-white text-xl font-semibold bg-primary w-full h-full flex items-center justify-center">
-                                    {{ service.provider.profile.user.username|slice:":1"|upper }}
-                                </span>
+                                        {{ service.provider.profile.user.username|slice:":1"|upper }}
+                                    </span>
                                 {% endif %}
                             </div>
                         </div>
@@ -54,21 +54,53 @@
                             <h2 class="text-xl font-bold">{{ service.provider.profile.user.username }}</h2>
                             <div class="text-gray-500 text-sm">
                                 <span>Average Rating:</span>
-                                <span class="text-sm">
-                                    {{ avg_rating|floatformat:"1" }}
-                                </span>
+                                <span class="text-sm">{{ avg_rating|floatformat:"1" }}</span>
                             </div>
                             <p class="text-sm text-gray-500">Reviews: {{ service.provider.reviews.count }}</p>
                         </div>
                     </a>
-                    <a href="" class="btn btn-primary text-white ml-auto mr-0">Book Now</a>
+                    <!-- Book Now Button triggers modal -->
+                    <button onclick="document.getElementById('bookingModal').classList.remove('hidden')" class="btn btn-primary text-white ml-auto">Book Now</button>
                 </div>
             </div>
         </div>
     </div>
+
+<div id="bookingModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-base-200 rounded-lg w-[30rem] max-h-[90vh] p-6 overflow-y-auto relative">
+            <h2 class="text-2xl font-bold mb-4">Book This Service</h2>
+            <form method="POST" action="{% url 'book_service' service.id %}">
+                {% csrf_token %}
+
+                <!-- Scheduled Time Input -->
+                <div class="form-control mb-4">
+                    <label for="id_scheduled_time" class="label font-semibold">{{ form.scheduled_time.label }}</label>
+                    {{ booking_form.scheduled_time }}
+                    {{ booking_form.scheduled_time.errors }}
+                </div>
+
+                <!-- Additional Details Input -->
+                <div class="form-control mb-4">
+                    <label for="id_details" class="label font-semibold">{{ form.details.label }}</label>
+                    {{ booking_form.details }}
+                    {{ booking_form.details.errors }}
+                </div>
+
+                <!-- Submit and Cancel Buttons -->
+                <div class="flex justify-end gap-2">
+                    <button type="button" class="btn btn-secondary text-white"
+                            onclick="document.getElementById('bookingModal').classList.add('hidden')">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary text-white">Confirm Booking</button>
+                </div>
+            </form>
+
+            <!-- Close Button -->
+            <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                    onclick="document.getElementById('bookingModal').classList.add('hidden')">
+                ✕
+            </button>
+        </div>
+    </div>
 {% endblock %}
-
-
-
-
-
