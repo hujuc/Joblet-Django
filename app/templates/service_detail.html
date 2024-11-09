@@ -1,52 +1,74 @@
 {% extends "layout.html" %}
 
 {% block content %}
+    <div class="p-6">
+        <!-- Back to Services -->
+        <a href="{% url 'services' %}" class="btn btn-primary text-white mb-6">Back to Services</a>
 
-    <div class="p-4">
-        <a href="{% url 'services' %}" class="btn btn-primary text-white">Back to Services</a>
+        <!-- Main Container -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Image Section -->
+            <div class="col-span-1">
+                {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.title }}" class="rounded-lg shadow-lg">
+                {% else %}
+                    <img src="https://via.placeholder.com/640x360.png?text=No+Image" alt="{{ service.title }}" class="rounded-lg shadow-lg">
+                {% endif %}
+            </div>
 
-        {# image #}
-        {% if service.image %}
-            <img src="{{ service.image.url }}" alt="{{ service.title }}" class="rounded-lg mt-4">
-        {% else %}
-            <img src="https://via.placeholder.com/640x360.png?text=No+Image" alt="{{ service.title }}" class="rounded-lg mt-4">
-        {% endif %}
+            <!-- Service Details Section -->
+            <div class="col-span-2">
+                <!-- Title and Category -->
+                <div class="flex justify-between items-center">
+                    <h1 class="text-3xl font-bold">{{ service.title }}</h1>
+                    <span class="badge badge-primary text-white">{{ service.category.name }}</span>
+                </div>
 
-        {# profile #}
-        <a class="ml-2 mt-4 flex gap-4 w-fit" href="{% url 'profile' service.provider.id %}">
-            <div class="avatar">
-                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                    {% if service.provider.avatar %}
-                        <img src="{{ service.provider.avatar.url }}" alt="{{ service.provider.user }}">
-                    {% else %}
-                        <span class="text-white text-lg font-semibold bg-primary w-full h-full flex items-center justify-center">
-                            {{ service.provider.user.username|slice:":1"|upper }}
-                        </span>
-                    {% endif %}
+                <!-- Description -->
+                <p class="text-base-content text-lg mt-4">{{ service.description }}</p>
+
+                <!-- Metadata -->
+                <div class="mt-6 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-500">Posted on: {{ service.created_at|date:"M d, Y" }}</p>
+                        <p class="text-md text-gray-500 font-bold">Duration: {{ service.duration }}</p>
+                    </div>
+                    <p class="text-2xl font-bold text-primary">${{ service.price }}</p>
+                </div>
+
+                <!-- Provider Profile -->
+                <div class="flex items-center mt-10">
+                    <a href="{% url 'profile' service.provider.profile.user.id %}" class="flex items-center gap-4">
+                        <div class="avatar">
+                            <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                                {% if service.provider.profile.avatar %}
+                                    <img src="{{ service.provider.profile.avatar.url }}" alt="{{ service.provider.profile.user.username }}">
+                                {% else %}
+                                    <span class="text-white text-xl font-semibold bg-primary w-full h-full flex items-center justify-center">
+                                    {{ service.provider.profile.user.username|slice:":1"|upper }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold">{{ service.provider.profile.user.username }}</h2>
+                            <div class="text-gray-500 text-sm">
+                                <span>Average Rating:</span>
+                                <span class="text-sm">
+                                    {{ avg_rating|floatformat:"1" }}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-500">Reviews: {{ service.provider.reviews.count }}</p>
+                        </div>
+                    </a>
+                    <a href="" class="btn btn-primary text-white ml-auto mr-0">Book Now</a>
                 </div>
             </div>
-
-            <div>
-                <h2 class="text-2xl font-bold">{{ service.provider.user.username }}</h2>
-            </div>
-        </a>
-
-
-        <div class="rounded-lg p-4">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold">{{ service.title }}</h1>
-                <span class="badge badge-primary text-white">{{ service.category }}</span>
-            </div>
-            <p class="text-lg text-base-content">{{ service.description }}</p>
-            <p class="text-lg text-base-content">Category: {{ service.category }}</p>
-            <p class="text-lg text-base-content">Posted on: {{ service.created_at }}</p>
         </div>
     </div>
-
-    {# a fixed window with price and option to buy #}
-    <div class="fixed bottom-0 left-0 right-0 bg-base-200 p-4 flex justify-between items-center">
-        <span class="text-2xl font-bold">${{ service.price }}</span>
-        <a href="" class="btn btn-primary text-white">Book Now</a>
-    </div>
-
 {% endblock %}
+
+
+
+
+

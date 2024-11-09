@@ -208,6 +208,8 @@ def home(request):
 def myorders(request):
     return render(request, 'myorders.html')
 
+from django.db.models import Avg, Q
+
 def services(request):
     # Get filter parameters from request
     search_query = request.GET.get('search', '')
@@ -242,6 +244,9 @@ def services(request):
     else:  # Most Recent
         services = services.order_by('-created_at')  # Ensure you have a created_at field or adjust accordingly
 
+    # Annotate each service with the average rating of its provider
+    services = services.annotate(avg_rating=Avg('provider__reviews__rating'))
+
     # Pass categories and filtered services to template
     categories = Category.objects.all()
     context = {
@@ -254,9 +259,18 @@ def services(request):
     }
     return render(request, 'services.html', context)
 
+
 def service_detail(request, service_id):
-    service = Service.objects.get(pk=service_id)
-    return render(request, 'service_detail.html', {'service': service})
+    service = get_object_or_404(Service.objects.select_related('provider__profile__user').prefetch_related('provider__reviews'), id=service_id)
+
+    # Calcular a média das avaliações do provedor
+    avg_rating = service.provider.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
+
+    context = {
+        'service': service,
+        'avg_rating': avg_rating,  # Passar o avg_rating para o template
+    }
+    return render(request, 'service_detail.html', context)
 
 def booking(request):
     return render(request, 'booking.html')
