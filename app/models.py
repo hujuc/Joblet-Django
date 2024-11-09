@@ -3,7 +3,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
 from decimal import Decimal
-from datetime import datetime
 
 
 class Profile(models.Model):
@@ -54,19 +53,23 @@ class Provider(models.Model):
 
 
 class Chat(models.Model):
-    service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='chats')
-    client = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='client_chats')
-    provider = models.ForeignKey('Provider', on_delete=models.CASCADE, related_name='provider_chats')
+    booking = models.OneToOneField(
+        'Booking',
+        on_delete=models.CASCADE,
+        related_name='chat'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Chat between {self.client.user.username} and {self.provider.profile.user.username} for {self.service.title}"
+        return f"Chat for Booking {self.booking.id} - {self.booking.service.title} by {self.booking.customer.user.username}"
+
 
 class Message(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='sent_messages')
     recipient = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='received_messages')
     content = models.TextField(default='')
-    timestamp = models.DateTimeField(auto_now=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
     def __str__(self):
@@ -125,18 +128,6 @@ class Booking(models.Model):
     accepted_at = models.DateTimeField(blank=True, null=True)
     completed_at = models.DateTimeField(blank=True, null=True)
     cancelled_at = models.DateTimeField(blank=True, null=True)
-    #chat = models.OneToOneField('Chat', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.service.title} - {self.customer.user.username} - {self.status}"
-
-class Notification(models.Model):
-    recipient = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='notifications')
-    message = models.TextField()
-    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
-    created_at = models.DateTimeField(auto_now_add=True)
-    read = models.BooleanField(default=False)
-    action_required = models.BooleanField(default=False)  # Novo campo para indicar ações pendentes
-
-    def __str__(self):
-        return f"Notification for {self.recipient.user.username} - {'Read' if self.read else 'Unread'}"
+        return f"Booking {self.id} for {self.service.title} by {self.customer.user.username}"

@@ -225,7 +225,7 @@
                             <div class="flex flex-col justify-end mt-6">
                                 <form method="POST" action="{% url 'book_service' service.id %}">
                                     {% csrf_token %}
-                                    <input type="datetime-local" name="date" required class="input input-bordered w-full mb-2">
+                                    <input type="datetime-local" name="scheduled_time" required class="input input-bordered w-full mb-2">
                                     <button type="submit" class="btn btn-secondary text-white w-full">Book</button>
                                 </form>
                             </div>
@@ -444,7 +444,7 @@
                             <div class="flex justify-between items-center">
                                 <div>
                                     <h3 class="font-semibold">{{ booking.service.title }}</h3>
-                                    <p class="text-sm text-gray-500">Date: {{ booking.date|date:"d M Y, H:i" }}</p>
+                                    <p class="text-sm text-gray-500">scheduled_time: {{ booking.scheduled_time|date:"d M Y, H:i" }}</p>
                                     <p class="text-sm text-gray-500">Status: {{ booking.get_status_display }}</p>
                                     <p class="text-sm text-gray-500">
                                         Approved: {{ booking.approved_by_provider|yesno:"Yes,No" }}

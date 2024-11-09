@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm, CategoryForm, AddBalanceForm, \
     ProviderForm, MessageForm, BookingForm
-from .models import Profile, Provider, Service, Category, Message, Booking, Notification
+from .models import Profile, Provider, Service, Category, Message, Booking, Chat
 
 logger = logging.getLogger(__name__)
 
@@ -290,7 +290,7 @@ def profile(request, user_id):
     review_form = ReviewForm()
     add_balance_form = AddBalanceForm()
 
-    booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-date')
+    booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-scheduled_time')
 
     # Get the provider instance if it exists
     provider = user_profile.provider if hasattr(user_profile, 'provider') else None
@@ -344,6 +344,41 @@ def profile(request, user_id):
         'booking_history': booking_history if request.user == user_profile.user else None,
     }
     return render(request, 'profile.html', context)
+
+@login_required
+def chat_view(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    chat, created = Chat.objects.get_or_create(booking=booking)
+
+    # Ensure only the customer or provider can access the chat
+    if request.user.profile not in [booking.customer, booking.service.provider.profile]:
+        return redirect('home')
+
+    # Get messages for the chat
+    messages = chat.messages.order_by('timestamp')
+
+    if request.method == "POST":
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.chat = chat
+            message.sender = request.user.profile
+            message.recipient = (
+                booking.customer if request.user.profile == booking.service.provider.profile else booking.service.provider.profile
+            )
+            message.save()
+            return redirect('chat_view', booking_id=booking.id)
+
+    else:
+        form = MessageForm()
+
+    context = {
+        'chat': chat,
+        'messages': messages,
+        'form': form,
+        'booking': booking,
+    }
+    return render(request, 'chat.html', context)
 
 def send_message(request, recipient_id):
     recipient = get_object_or_404(Profile, id=recipient_id)
@@ -417,31 +452,25 @@ def edit_profile(request, user_id):
 
 @login_required
 def book_service(request, service_id):
-    service = get_object_or_404(Service, id=service_id)
+    service = get_object_or_404(Service, id=service_id, is_active=True, approval='approved')
 
     if request.method == "POST":
         form = BookingForm(request.POST)
         if form.is_valid():
-            # Create booking
             booking = form.save(commit=False)
             booking.service = service
             booking.customer = request.user.profile  # Assuming Profile is linked to User
             booking.save()
-
-            # Notify the provider
-            Notification.objects.create(
-                recipient=service.provider.profile,
-                message=f"{request.user.username} has booked your service '{service.title}'.",
-                booking=booking,
-                action_required=True
-            )
-            messages.success(request, "Booking created successfully!")
-            return redirect('service_detail', service_id=service_id)
+            print(f"Booking created: {booking}")  # Debugging output
+            return redirect('service_detail', service_id=service.id)
         else:
-            messages.error(request, "Invalid booking details.")
-            return redirect('service_detail', service_id=service_id)
+            print("Form is not valid")  # Debugging output
+            print(form.errors)  # Show form validation errors
 
-    return redirect('service_detail', service_id=service_id)
+    else:
+        form = BookingForm()
+
+    return render(request, 'service_detail.html', {'service': service, 'form': form})
 
 
 @login_required
@@ -469,58 +498,3 @@ def update_booking_status(request, booking_id):
         messages.info(request, "Esta reserva já foi concluída.")
 
     return redirect('profile', user_id=request.user.id)
-@login_required
-def notifications(request):
-    user_profile = Profile.objects.get(user=request.user)
-    notifications = user_profile.notifications.order_by('-created_at')
-    return render(request, 'notifications.html', {'notifications': notifications})
-
-@login_required
-def mark_notification_as_read(request, notification_id):
-    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
-    notification.read = True
-    notification.save()
-    return redirect('notifications')
-
-
-@login_required
-def approve_booking(request, notification_id):
-    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
-
-    if not notification.booking:
-        messages.error(request, "Reserva não encontrada para esta notificação.")
-        return redirect('notifications')
-
-    # Aprova a reserva associada
-    booking = notification.booking
-    booking.approved_by_provider = True
-    booking.save()
-
-    # Marca a notificação como lida
-    notification.read = True
-    notification.action_required = False
-    notification.save()
-
-    messages.success(request, "Reserva aprovada com sucesso!")
-    return redirect('notifications')
-
-@login_required
-def reject_booking(request, notification_id):
-    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
-
-    if not notification.booking:
-        messages.error(request, "Reserva não encontrada para esta notificação.")
-        return redirect('notifications')
-
-    # Rejeita a reserva associada
-    booking = notification.booking
-    booking.status = 'cancelled'
-    booking.save()
-
-    # Marca a notificação como lida
-    notification.read = True
-    notification.action_required = False
-    notification.save()
-
-    messages.success(request, "Reserva rejeitada com sucesso!")
-    return redirect('notifications')

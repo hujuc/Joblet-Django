@@ -206,8 +206,8 @@ class MessageForm(forms.ModelForm):
 
 class BookingForm(forms.ModelForm):
     class Meta:
-        model = Booking  # Specify the model class
-        fields = ['scheduled_time', 'details']  # Match the field names in the Booking model
+        model = Booking
+        fields = ['scheduled_time', 'details']
         widgets = {
             'scheduled_time': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
@@ -216,7 +216,7 @@ class BookingForm(forms.ModelForm):
             }),
             'details': forms.Textarea(attrs={
                 'class': 'textarea textarea-bordered w-full',
+                'placeholder': 'Add details about your booking',
                 'rows': 4,
-                'placeholder': 'Add any additional details about your booking',
             }),
         }

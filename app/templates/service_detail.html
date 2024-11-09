@@ -74,25 +74,29 @@
 
                 <!-- Scheduled Time Input -->
                 <div class="form-control mb-4">
-                    <label for="id_scheduled_time" class="label font-semibold">{{ form.scheduled_time.label }}</label>
-                    {{ booking_form.scheduled_time }}
-                    {{ booking_form.scheduled_time.errors }}
+                    <label for="scheduled_time" class="label font-semibold">Scheduled Time</label>
+                    <input
+                        type="datetime-local"
+                        id="scheduled_time"
+                        name="scheduled_time"
+                        class="input input-bordered w-full"
+                        required>
                 </div>
 
                 <!-- Additional Details Input -->
                 <div class="form-control mb-4">
-                    <label for="id_details" class="label font-semibold">{{ form.details.label }}</label>
-                    {{ booking_form.details }}
-                    {{ booking_form.details.errors }}
+                    <label for="details" class="label font-semibold">Details</label>
+                    <textarea
+                        id="details"
+                        name="details"
+                        class="textarea textarea-bordered w-full"
+                        rows="4"
+                        required></textarea>
                 </div>
 
-                <!-- Submit and Cancel Buttons -->
-                <div class="flex justify-end gap-2">
-                    <button type="button" class="btn btn-secondary text-white"
-                            onclick="document.getElementById('bookingModal').classList.add('hidden')">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn btn-primary text-white">Confirm Booking</button>
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type="submit" class="btn btn-primary text-white">Book Now</button>
                 </div>
             </form>
 
