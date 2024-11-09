@@ -66,27 +66,41 @@
         </div>
     </div>
 
-    <!-- Booking Modal -->
-    <div id="bookingModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
-        <div class="bg-base-200 rounded-lg w-[30rem] p-6 relative">
-            <h2 class="text-2xl font-bold mb-4">Book {{ service.title }}</h2>
-
-            <!-- Booking Form -->
+<div id="bookingModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-base-200 rounded-lg w-[30rem] max-h-[90vh] p-6 overflow-y-auto relative">
+            <h2 class="text-2xl font-bold mb-4">Book This Service</h2>
             <form method="POST" action="{% url 'book_service' service.id %}">
                 {% csrf_token %}
-                <div class="form-group mb-4">
-                    <label for="date" class="font-semibold">Select Date and Time:</label>
-                    <input type="datetime-local" name="date" id="date" required class="input input-bordered w-full">
+
+                <!-- Scheduled Time Input -->
+                <div class="form-control mb-4">
+                    <label for="id_scheduled_time" class="label font-semibold">{{ form.scheduled_time.label }}</label>
+                    {{ booking_form.scheduled_time }}
+                    {{ booking_form.scheduled_time.errors }}
                 </div>
 
+                <!-- Additional Details Input -->
+                <div class="form-control mb-4">
+                    <label for="id_details" class="label font-semibold">{{ form.details.label }}</label>
+                    {{ booking_form.details }}
+                    {{ booking_form.details.errors }}
+                </div>
+
+                <!-- Submit and Cancel Buttons -->
                 <div class="flex justify-end gap-2">
-                    <button type="button" onclick="document.getElementById('bookingModal').classList.add('hidden')" class="btn btn-secondary text-white">Cancel</button>
+                    <button type="button" class="btn btn-secondary text-white"
+                            onclick="document.getElementById('bookingModal').classList.add('hidden')">
+                        Cancel
+                    </button>
                     <button type="submit" class="btn btn-primary text-white">Confirm Booking</button>
                 </div>
             </form>
 
-            <!-- Close Modal Button -->
-            <button onclick="document.getElementById('bookingModal').classList.add('hidden')" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">✕</button>
+            <!-- Close Button -->
+            <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                    onclick="document.getElementById('bookingModal').classList.add('hidden')">
+                ✕
+            </button>
         </div>
     </div>
 {% endblock %}

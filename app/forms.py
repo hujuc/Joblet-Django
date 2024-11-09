@@ -1,8 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from app.models import Profile, Review, Provider, Category
-
+from app.models import Profile, Review, Provider, Category, Booking
 
 from django.db import transaction
 
@@ -166,4 +165,22 @@ class CategoryForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter category name'}),
             'description': forms.Textarea(attrs={'class': 'textarea textarea-bordered w-full', 'rows': 3, 'placeholder': 'Enter category description'}),
+        }
+
+
+class BookingForm(forms.ModelForm):
+    class Meta:
+        model = Booking  # Specify the model class
+        fields = ['scheduled_time', 'details']  # Match the field names in the Booking model
+        widgets = {
+            'scheduled_time': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'class': 'input input-bordered w-full',
+                'placeholder': 'Select a date and time',
+            }),
+            'details': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'rows': 4,
+                'placeholder': 'Add any additional details about your booking',
+            }),
         }

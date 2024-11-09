@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm, CategoryForm, AddBalanceForm, \
-    ProviderForm
+    ProviderForm, BookingForm
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
@@ -261,14 +261,15 @@ def services(request):
 
 
 def service_detail(request, service_id):
-    service = get_object_or_404(Service.objects.select_related('provider__profile__user').prefetch_related('provider__reviews'), id=service_id)
+    service = get_object_or_404(Service, id=service_id, is_active=True, approval='approved')
 
-    # Calcular a média das avaliações do provedor
     avg_rating = service.provider.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
+    booking_form = BookingForm()
 
     context = {
         'service': service,
-        'avg_rating': avg_rating,  # Passar o avg_rating para o template
+        'avg_rating': avg_rating,
+        'booking_form': booking_form,
     }
     return render(request, 'service_detail.html', context)
 
@@ -277,10 +278,6 @@ def booking(request):
 
 def about(request):
     return render(request, 'about.html')
-
-from django.shortcuts import redirect
-
-from decimal import Decimal
 
 def profile(request, user_id):
     # Get the user's profile
@@ -367,40 +364,33 @@ def edit_profile(request, user_id):
 
     return render(request, 'profile.html', {'form': form, 'profile': profile})
 
-from django.utils import timezone
-
 @login_required
 def book_service(request, service_id):
     service = get_object_or_404(Service, id=service_id)
-    profile = Profile.objects.get(user=request.user)
 
     if request.method == "POST":
-        if profile.wallet < service.price:
-            messages.error(request, "Saldo insuficiente para requisitar este serviço.")
-            return redirect('service_detail', service_id=service_id)
+        form = BookingForm(request.POST)
+        if form.is_valid():
+            # Create booking
+            booking = form.save(commit=False)
+            booking.service = service
+            booking.customer = request.user.profile  # Assuming Profile is linked to User
+            booking.save()
 
-        profile.wallet -= service.price
-        profile.save()
-
-        date_str = request.POST.get("date")
-        try:
-            date = timezone.datetime.strptime(date_str, "%Y-%m-%dT%H:%M")
-            booking = Booking.objects.create(service=service, customer=profile, date=date, status="pending")
-
-            # Cria a notificação para o provedor com ação requerida
-            notification_message = f"Novo pedido de reserva para o serviço '{service.title}' por {profile.user.username}."
+            # Notify the provider
             Notification.objects.create(
                 recipient=service.provider.profile,
-                message=notification_message,
+                message=f"{request.user.username} has booked your service '{service.title}'.",
                 booking=booking,
                 action_required=True
             )
+            messages.success(request, "Booking created successfully!")
+            return redirect('service_detail', service_id=service_id)
+        else:
+            messages.error(request, "Invalid booking details.")
+            return redirect('service_detail', service_id=service_id)
 
-            messages.success(request, f"Reserva para {service.title} em {date} criada com sucesso.")
-        except ValueError:
-            messages.error(request, "Formato de data inválido. Por favor, use o formato correto.")
-
-    return redirect('profile', user_id=request.user.id)
+    return redirect('service_detail', service_id=service_id)
 
 
 @login_required
