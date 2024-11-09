@@ -12,15 +12,15 @@
 </head>
 
 <body data-theme="nord">
-    <div class="min-h-screen w-screen">
+    <div class="min-h-screen w-screen bg-white">
         <div class="navbar bg-base-200">
             <div class="container mx-auto">
                 <div class="navbar-start flex items-center gap-4">
-                    <a class="btn btn-ghost text-3xl text-primary">joblet.</a>
+                    <a class="btn btn-ghost text-3xl text-primary" href="{% url 'index' %}">joblet.</a>
 
                     {% if user.is_authenticated %}
                         <ul class="menu menu-horizontal px-1 text-primary text-lg">
-                            {% if is_provider %}
+                            {% if user.profile.is_provider %}
                                 <li><a href="{% url 'myservices' %}">My Services</a></li>
                                 <li><a href="">Chat</a></li>
                                 <li><a href="">Opportunities</a></li>
@@ -36,9 +36,17 @@
 
                         <div class="navbar-end flex gap-4">
                             <div class="dropdown dropdown-end">
-                                <span class="text-primary mr-2">Bem-vindo(a), {{ user.username }}</span>
-                                <div tabindex="0" role="button" class="btn btn-ghost btn-circle bg-gray-300 text-black">
-                                    <span class="text-lg font-semibold">{{ user.username|slice:":1"|upper }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-primary mr-2">Bem-vindo(a), {{ user.username }}</span>
+
+                                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle bg-gray-300 text-black">
+                                        {% if user.profile.avatar %}
+                                            <img src="{{ user.profile.avatar.url }}" class="rounded-full" alt="avatar">
+
+                                        {% else %}
+                                            <span class="text-lg font-semibold">{{ user.username|slice:":1"|upper }}</span>
+                                        {% endif %}
+                                    </div>
                                 </div>
                                 <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
                                     <li><a href="{% url 'profile' user.id %}" class="justify-between">Profile</a></li>
