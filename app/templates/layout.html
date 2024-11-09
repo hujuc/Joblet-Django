@@ -30,7 +30,37 @@
                                 <li><a href="{% url 'users' %}">Users</a></li>
                                 <li><a href="{% url 'categories' %}">Categories</a></li>
                             {% else %}
-                                <li><a href="{% url 'services' %}">Services</a></li>
+                                <li>
+                                    <details>
+                                        <summary>Services</summary>
+                                        <ul class="bg-base-100 rounded-t-none p-2">
+                                            <!-- All Services Link -->
+                                            <li>
+                                                <a href="{% url 'services' %}" class="block px-4 py-2 font-semibold hover:bg-base-300 rounded-lg">
+                                                    All Services
+                                                </a>
+                                            </li>
+
+                                            <!-- Separator or Label -->
+                                            <li class="py-2 text-gray-500 text-sm font-semibold uppercase tracking-wide">
+                                                Categories
+                                            </li>
+
+                                            <!-- Categories -->
+                                            {% for category in categories %}
+                                                <li>
+                                                    <a href="{% url 'services' %}?category={{ category.id }}" class="block px-4 py-2 hover:bg-base-300 rounded-lg">
+                                                        {{ category.name }}
+                                                    </a>
+                                                </li>
+                                            {% empty %}
+                                                <li>
+                                                    <p class="block px-4 py-2 text-gray-500">No categories available</p>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </details>
+                                </li>
                             {% endif %}
                         </ul>
                         </div>
@@ -41,7 +71,7 @@
 {#                                    <a href="{% url 'notifications' %}" class="btn btn-ghost btn-circle relative">#}
 {#                                        <i class="fas fa-bell text-2xl text-primary"></i>#}
 {#                                    </a>#}
-                                    <span class="text-primary mr-2">Bem-vindo(a), {{ user.username }}</span>
+                                    <span class="text-primary mr-2">Welcome, {{ user.username }}</span>
 
                                     <div tabindex="0" role="button" class="btn btn-ghost btn-circle bg-gray-300 text-black">
                                         {% if user.profile.avatar %}
