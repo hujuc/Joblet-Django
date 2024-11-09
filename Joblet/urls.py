@@ -44,6 +44,12 @@ urlpatterns = [
     path('reject-service/<int:service_id>/', views.reject_service, name='reject_service'),
     path('users/', views.users, name='users'),
     path('ban-user/<int:user_id>/', views.ban_user, name='ban_user'),
+    path('edit_profile/<int:user_id>/', views.edit_profile, name='edit_profile'),
+    path('book/<int:service_id>/', views.book_service, name='book_service'),
+    path('update-booking-status/<int:booking_id>/', views.update_booking_status, name='update_booking_status'),
+
+    # path('chat/<int:service_id>/', views.chat, name='chat'),path('book/<int:service_id>/', views.book_service, name='book_service'),
+
 ]
 
 if settings.DEBUG:

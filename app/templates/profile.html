@@ -14,8 +14,8 @@
                                 <img src="{{ profile.avatar.url }}" alt="{{ profile.user.username }}">
                             {% else %}
                                 <span class="text-white text-2xl font-semibold bg-primary w-full h-full flex items-center justify-center">
-                            {{ profile.user.username|slice:":1"|upper }}
-                        </span>
+                                    {{ profile.user.username|slice:":1"|upper }}
+                                </span>
                             {% endif %}
                         </div>
                     </div>
@@ -69,9 +69,65 @@
             {% endif %}
         </div>
 
+        <!-- Edit Profile Modal -->
+        <div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
+            <div class="bg-base-200 rounded-lg w-[30rem] p-6 relative">
+                <h2 class="text-2xl font-bold mb-4">Edit Profile</h2>
+
+                <form method="POST" action="{% url 'edit_profile' profile.user.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Profile Image Upload -->
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">Profile Image</label>
+                        <div class="flex items-center gap-4">
+                            <input type="file" name="avatar" accept="image/*" class="file-input file-input-bordered w-full">
+                            {% if profile.avatar %}
+                                <img src="{{ profile.avatar.url }}" alt="Current Profile Image" class="w-16 h-16 rounded-full">
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- About Me Section -->
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">About Me</label>
+                        <textarea name="about" class="textarea textarea-bordered w-full" placeholder="Tell us about yourself">{{ profile.about|default_if_none:"" }}</textarea>
+                    </div>
+
+                    <!-- Social Media Links Section -->
+                    <h3 class="text-xl font-semibold mt-4">Social Media Links</h3>
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">Contact Email</label>
+                        <input type="email" name="contact_email" value="{{ profile.contact_email|default_if_none:'' }}" placeholder="Enter your email" class="input input-bordered w-full">
+                    </div>
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">LinkedIn</label>
+                        <input type="url" name="linkedin" value="{{ profile.linkedin|default_if_none:'' }}" placeholder="https://linkedin.com/in/username" class="input input-bordered w-full">
+                    </div>
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">Twitter</label>
+                        <input type="url" name="twitter" value="{{ profile.twitter|default_if_none:'' }}" placeholder="https://twitter.com/username" class="input input-bordered w-full">
+                    </div>
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">Facebook</label>
+                        <input type="url" name="facebook" value="{{ profile.facebook|default_if_none:'' }}" placeholder="https://facebook.com/username" class="input input-bordered w-full">
+                    </div>
+
+                    <!-- Save & Cancel Buttons -->
+                    <div class="flex justify-end gap-2">
+                        <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.add('hidden')">Cancel</button>
+                        <button type="submit" class="btn btn-primary text-white">Save Changes</button>
+                    </div>
+                </form>
+
+                <!-- Close Modal Button -->
+                <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800" onclick="document.getElementById('editModal').classList.add('hidden')">✕</button>
+            </div>
+        </div>
+
+        <!-- Balance Modal -->
 
         {% if user.is_authenticated and user == profile.user %}
-            <!-- Modal para adicionar saldo -->
             <div id="addBalanceModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
                 <div class="bg-base-200 rounded-lg w-[30rem] p-6 relative">
                     <h2 class="text-2xl font-bold mb-4">Add Balance</h2>
@@ -101,7 +157,8 @@
             </div>
         {% endif %}
 
-        <!-- Profile Details -->
+
+        <!-- Profile Stats -->
         {% if profile.contact_email or profile.linkedin or profile.twitter or profile.facebook %}
             <div class="mt-6">
                 <h2 class="text-2xl font-semibold">Contact & Social Links</h2>
@@ -149,7 +206,7 @@
                         </div>
                     </div>
 
-                    <!-- Modal for Service Details -->
+                    <!-- Modal for Service Details and Booking -->
                     <div id="serviceModal{{ service.id }}" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
                         <div class="bg-base-200 rounded-lg w-[90%] md:w-[40rem] max-h-[90vh] p-6 overflow-y-auto relative">
                             <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800" onclick="document.getElementById('serviceModal{{ service.id }}').classList.add('hidden')">✕</button>
@@ -164,10 +221,12 @@
                                     <span class="badge badge-outline">{{ service.category.name }}</span>
                                 </div>
                             </div>
-                            <div class="flex justify-end mt-6">
-                                <form method="POST" action="">
+                            <!-- Booking Form -->
+                            <div class="flex flex-col justify-end mt-6">
+                                <form method="POST" action="{% url 'book_service' service.id %}">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-primary text-white">Purchase</button>
+                                    <input type="datetime-local" name="date" required class="input input-bordered w-full mb-2">
+                                    <button type="submit" class="btn btn-secondary text-white w-full">Book</button>
                                 </form>
                             </div>
                         </div>
@@ -376,6 +435,37 @@
             </div>
         </div>
 
+        {% if user.is_authenticated and user == profile.user %}
+            <div class="mt-6">
+                <h2 class="text-2xl font-semibold">Booking History</h2>
+                <div class="space-y-4 mt-4">
+                    {% for booking in booking_history %}
+                        <div class="bg-base-200 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="font-semibold">{{ booking.service.title }}</h3>
+                                    <p class="text-sm text-gray-500">Date: {{ booking.date|date:"d M Y, H:i" }}</p>
+                                    <p class="text-sm text-gray-500">Status: {{ booking.get_status_display }}</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-primary font-semibold">${{ booking.service.price|floatformat:2 }}</span>
+
+                                    {% if booking.status != 'completed' %}
+                                        <!-- Button to mark the booking as completed -->
+                                        <form method="POST" action="{% url 'update_booking_status' booking.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success">Mark as Completed</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <p class="text-gray-500 mt-6">No bookings found.</p>
+        {% endif %}
+
     </div>
 {% endblock %}
-

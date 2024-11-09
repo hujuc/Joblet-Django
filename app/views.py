@@ -11,7 +11,7 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
-from .models import Profile, Provider, Service, Category
+from .models import Profile, Provider, Service, Category, Booking
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse
 
@@ -294,6 +294,8 @@ def profile(request, user_id):
     review_form = ReviewForm()
     add_balance_form = AddBalanceForm()
 
+    booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-date')
+
     # Get the provider instance if it exists
     provider = user_profile.provider if hasattr(user_profile, 'provider') else None
     is_provider = provider is not None
@@ -343,5 +345,76 @@ def profile(request, user_id):
         'provider_form': provider_form,
         'review_form': review_form,
         'add_balance_form': add_balance_form,
+        'booking_history': booking_history if request.user == user_profile.user else None,
     }
     return render(request, 'profile.html', context)
+
+
+def edit_profile(request, user_id):
+    profile = get_object_or_404(Profile, user__id=user_id)
+
+    # Ensure only the profile owner can edit
+    if request.user != profile.user:
+        return redirect('profile', user_id=user_id)
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile', user_id=user_id)
+    else:
+        form = ProfileForm(instance=profile)
+
+    return render(request, 'profile.html', {'form': form, 'profile': profile})
+
+from django.utils import timezone
+
+@login_required
+def book_service(request, service_id):
+    # Obtém o serviço pelo ID
+    service = get_object_or_404(Service, id=service_id)
+    profile = Profile.objects.get(user=request.user)  # Obtém o perfil do usuário logado
+
+    if request.method == "POST":
+        # Verificar se o saldo do usuário é suficiente para o serviço
+        if profile.wallet < service.price:
+            messages.error(request, "Saldo insuficiente para requisitar este serviço.")
+            return redirect('service_detail', service_id=service_id)
+
+        # Deduzir o valor do serviço da carteira do usuário
+        profile.wallet -= service.price
+        profile.save()  # Salva o novo saldo na carteira do usuário
+
+        # Criar a reserva
+        date_str = request.POST.get("date")  # Recebe a data do formulário (YYYY-MM-DDTHH:MM)
+        try:
+            date = timezone.datetime.strptime(date_str, "%Y-%m-%dT%H:%M")
+            Booking.objects.create(service=service, customer=profile, date=date, status="pending")
+            messages.success(request, f"Reserva para {service.title} em {date} criada com sucesso. Valor deduzido da carteira.")
+        except ValueError:
+            messages.error(request, "Formato de data inválido. Por favor, use o formato correto.")
+
+    return redirect('profile', user_id=request.user.id)
+
+@login_required
+def update_booking_status(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    # Permitir que apenas o cliente do pedido o marque como concluído
+    if request.user.profile != booking.customer:
+        messages.error(request, "Você não tem permissão para alterar o status desta reserva.")
+        return redirect('profile', user_id=request.user.id)
+
+    if booking.status != 'completed':
+        booking.status = 'completed'
+        booking.save()
+
+        provider_profile = booking.service.provider.profile
+        provider_profile.wallet += booking.service.price
+        provider_profile.save()
+
+        messages.success(request, "Status da reserva atualizado para 'concluído' e valor depositado na carteira.")
+    else:
+        messages.info(request, "Esta reserva já foi concluída.")
+
+    return redirect('profile', user_id=request.user.id)
