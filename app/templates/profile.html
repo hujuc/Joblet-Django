@@ -446,21 +446,33 @@
                                     <h3 class="font-semibold">{{ booking.service.title }}</h3>
                                     <p class="text-sm text-gray-500">Date: {{ booking.date|date:"d M Y, H:i" }}</p>
                                     <p class="text-sm text-gray-500">Status: {{ booking.get_status_display }}</p>
+                                    <p class="text-sm text-gray-500">
+                                        Approved: {{ booking.approved_by_provider|yesno:"Yes,No" }}
+                                    </p>
                                 </div>
                                 <div class="flex items-center gap-4">
                                     <span class="text-primary font-semibold">${{ booking.service.price|floatformat:2 }}</span>
 
-                                    {% if booking.status != 'completed' %}
-                                        <!-- Button to mark the booking as completed -->
+                                    {% if not booking.approved_by_provider and user == booking.service.provider.profile.user %}
+                                        <!-- Botão para o provedor aprovar a reserva -->
+                                        <form method="POST" action="{% url 'approve_booking' booking.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success">Aprovar Reserva</button>
+                                        </form>
+                                    {% endif %}
+
+                                    {% if booking.status != 'completed' and booking.approved_by_provider and user == booking.customer.user %}
+                                        <!-- Botão para o cliente marcar como concluído -->
                                         <form method="POST" action="{% url 'update_booking_status' booking.id %}">
                                             {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-success">Mark as Completed</button>
+                                            <button type="submit" class="btn btn-sm btn-success">Marcar como Concluído</button>
                                         </form>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
+
                 </div>
             </div>
         {% else %}

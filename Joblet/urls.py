@@ -47,7 +47,10 @@ urlpatterns = [
     path('edit_profile/<int:user_id>/', views.edit_profile, name='edit_profile'),
     path('book/<int:service_id>/', views.book_service, name='book_service'),
     path('update-booking-status/<int:booking_id>/', views.update_booking_status, name='update_booking_status'),
-
+    path('notifications/', views.notifications, name='notifications'),
+    path('notifications/approve/<int:notification_id>/', views.approve_booking, name='approve_booking'),
+    path('notifications/reject/<int:notification_id>/', views.reject_booking, name='reject_booking'),
+    path('notifications/read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
     # path('chat/<int:service_id>/', views.chat, name='chat'),path('book/<int:service_id>/', views.book_service, name='book_service'),
 
 ]

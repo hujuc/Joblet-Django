@@ -9,6 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.13/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <title>joblet.</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 
 <body data-theme="nord">
@@ -37,6 +38,9 @@
                         <div class="navbar-end flex gap-4">
                             <div class="dropdown dropdown-end">
                                 <div class="flex items-center gap-2">
+                                    <a href="{% url 'notifications' %}" class="btn btn-ghost btn-circle relative">
+                                        <i class="fas fa-bell text-2xl text-primary"></i>
+                                    </a>
                                     <span class="text-primary mr-2">Bem-vindo(a), {{ user.username }}</span>
 
                                     <div tabindex="0" role="button" class="btn btn-ghost btn-circle bg-gray-300 text-black">
