@@ -483,14 +483,24 @@ def edit_profile(request, user_id):
 @login_required
 def book_service(request, service_id):
     service = get_object_or_404(Service, id=service_id, is_active=True, approval='approved')
+    user_profile = request.user.profile  # Assuming a one-to-one relationship between User and Profile
 
     if request.method == "POST":
         form = BookingForm(request.POST)
         if form.is_valid():
+            # Check if the user has enough balance
+            if user_profile.wallet < service.price:
+                messages.error(request, "You don't have enough balance to book this service. Please add funds to your wallet.")
+                return redirect('service_detail', service_id=service_id)
+
+            # Deduct the service price from the user's wallet
+            user_profile.wallet -= service.price
+            user_profile.save()
+
             # Create booking
             booking = form.save(commit=False)
             booking.service = service
-            booking.customer = request.user.profile  # Assuming Profile is linked to User
+            booking.customer = user_profile
             booking.save()
 
             # Notify the provider
@@ -500,17 +510,16 @@ def book_service(request, service_id):
                 booking=booking,
                 action_required=True
             )
-            messages.success(request, "Booking created successfully!")
+            messages.success(request, "Booking successful! Your request has been sent to the provider.")
             return redirect('service_detail', service_id=service_id)
         else:
-            messages.error(request, "Invalid booking details.")
+            messages.error(request, "Invalid booking details. Please try again.")
             return redirect('service_detail', service_id=service_id)
 
     else:
         form = BookingForm()
 
     return render(request, 'service_detail.html', {'service': service, 'form': form})
-
 
 @login_required
 def update_booking_status(request, booking_id):
