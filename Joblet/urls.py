@@ -23,13 +23,18 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='index'),
+    # Auth
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),
     path('about/', views.about, name='about'),
+
+    # User
     path('profile/<int:user_id>/', views.profile, name='profile'),
+    path('edit_profile/<int:user_id>/', views.edit_profile, name='edit_profile'),
     path('services/', views.services, name='services'),
-    path('service/<int:service_id>/', views.service_detail, name='service'),
+    path('service/<int:service_id>/', views.service_detail, name='service_detail'),
+    path('service/<int:service_id>/book/', views.book_service, name='book_service'),
     path('booking/', views.booking, name='booking'),
     path('myorders/', views.myorders, name='myorders'),
     path('myservices/', views.myservices, name='myservices'),
@@ -37,6 +42,8 @@ urlpatterns = [
     path('myservices/delete/<int:service_id>/', views.delete_service, name='delete_service'),
     path('myservices/new/', views.add_service, name='add_service'),
     path('myservices/edit/<int:service_id>/json/', views.get_service_data, name='get_service_data'),
+
+    # Admin
     path('categories/', views.categories, name='categories'),
     path('providers/', views.providers, name='providers'),
     path('pendingservices/', views.pendingservices, name='pendingservices'),
@@ -44,12 +51,25 @@ urlpatterns = [
     path('reject-service/<int:service_id>/', views.reject_service, name='reject_service'),
     path('users/', views.users, name='users'),
     path('ban-user/<int:user_id>/', views.ban_user, name='ban_user'),
-    path('edit_profile/<int:user_id>/', views.edit_profile, name='edit_profile'),
-    path('book/<int:service_id>/', views.book_service, name='book_service'),
+
+    # Messages
+    path('thread/<int:recipient_id>/', views.message_thread, name='message_thread'),
+
     path('update-booking-status/<int:booking_id>/', views.update_booking_status, name='update_booking_status'),
 
-    # path('chat/<int:service_id>/', views.chat, name='chat'),path('book/<int:service_id>/', views.book_service, name='book_service'),
+    # Chat
+    path('booking/<int:booking_id>/chat/', views.chat_view, name='chat_view'),
+    path('chats/', views.user_chats, name='user_chats'),
 
+    # Notifications
+    path('notifications/', views.notifications, name='notifications'),
+    path('notifications/read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
+
+    # Bookings
+    path('myservices/<int:service_id>/pending_bookings/', views.pending_bookings, name='pending_bookings'),
+    path('myservices/<int:service_id>/in_progress_bookings/', views.in_progress_bookings, name='in_progress_bookings'),
+    path('booking/<int:booking_id>/accept/', views.accept_booking, name='accept_booking'),
+    path('booking/<int:booking_id>/reject/', views.reject_booking, name='reject_booking'),
 ]
 
 if settings.DEBUG:

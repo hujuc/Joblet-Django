@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="p-6">
+    <h2 class="text-2xl font-bold mb-4">Conversation with {{ recipient.user.username }}</h2>
+    <div class="messages mb-6">
+        {% for message in messages %}
+            <div class="mb-4">
+                <p class="{% if message.sender == request.user.profile %}text-right{% endif %} font-semibold">
+                    {{ message.sender.user.username }}:
+                </p>
+                <p class="bg-base-200 p-3 rounded-lg {% if message.sender == request.user.profile %}text-right{% endif %}">
+                    {{ message.content }}
+                </p>
+                <small class="text-gray-500 {% if message.sender == request.user.profile %}text-right{% endif %}">
+                    {{ message.timestamp|date:"M d, Y H:i" }}
+                </small>
+            </div>
+        {% endfor %}
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-control mb-4">
+            {{ form.content }}
+        </div>
+        <button type="submit" class="btn btn-primary text-white">Send</button>
+    </form>
+</div>
+{% endblock %}

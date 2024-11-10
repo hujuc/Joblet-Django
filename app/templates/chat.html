@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="text-2xl font-bold my-4">
+    Chat for Booking: {{ booking.service.title }}
+</h2>
+
+<!-- Booking Details -->
+<div class="bg-base-200 p-4 rounded-lg mb-6 shadow-md">
+    <h3 class="text-lg font-semibold">Booking Details</h3>
+    <p class="text-sm"><strong>Service Provider:</strong> {{ booking.service.provider.profile.user.username }}</p>
+    <p class="text-sm"><strong>Scheduled Time:</strong> {{ booking.scheduled_time|date:"M d, Y H:i" }}</p>
+    <p class="text-sm"><strong>Details:</strong> {{ booking.details }}</p>
+</div>
+
+<!-- Chat Messages -->
+<div class="bg-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto chat-messages">
+    {% for chat_message in chat_messages %}
+        <div class="mb-4 {% if chat_message.sender == request.user.profile %}text-right{% else %}text-left{% endif %}">
+            <p class="font-semibold text-primary">
+                {% if chat_message.sender == request.user.profile %}
+                    You
+                {% else %}
+                    {{ chat_message.sender.user.username }}
+                {% endif %}
+            </p>
+            <p class="text-sm inline-block rounded-lg p-2 shadow-md {% if chat_message.sender == request.user.profile %}bg-primary text-white{% else %}bg-gray-200{% endif %}">
+                {{ chat_message.content }}
+            </p>
+            <p class="text-xs text-gray-500">
+                {{ chat_message.timestamp|date:"M d, Y H:i" }}
+            </p>
+        </div>
+    {% empty %}
+        <p class="text-gray-500 text-center">No messages yet. Start the conversation!</p>
+    {% endfor %}
+</div>
+
+<!-- Message Form -->
+<form method="POST" class="mt-4">
+    {% csrf_token %}
+    <div class="form-control mb-4">
+        {{ form.content.label_tag }}
+        {{ form.content }}
+    </div>
+    <div class="flex justify-end">
+        <button type="submit" class="btn btn-primary text-white">
+            Send
+        </button>
+    </div>
+</form>
+{% endblock %}

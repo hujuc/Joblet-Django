@@ -9,27 +9,58 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.13/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <title>joblet.</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 
 <body data-theme="nord">
     <div class="min-h-screen w-screen bg-white">
-        <div class="navbar bg-base-200">
+        <div class="navbar bg-primary">
             <div class="container mx-auto">
                 <div class="navbar-start flex items-center gap-4">
-                    <a class="btn btn-ghost text-3xl text-primary" href="{% url 'index' %}">joblet.</a>
+                    <a class="btn btn-ghost text-3xl text-white" href="{% url 'index' %}">joblet.</a>
 
                     {% if user.is_authenticated %}
-                        <ul class="menu menu-horizontal px-1 text-primary text-lg">
+                        <ul class="menu menu-horizontal px-1 text-white text-lg">
                             {% if user.profile.is_provider %}
                                 <li><a href="{% url 'myservices' %}">My Services</a></li>
-                                <li><a href="">Chat</a></li>
+                                <li><a href="{% url 'user_chats' %}">Chat</a></li>
                                 <li><a href="">Opportunities</a></li>
                             {% elif user.username == 'admin' %}
                                 <li><a href="{% url 'pendingservices' %}">Pending Services</a></li>
                                 <li><a href="{% url 'users' %}">Users</a></li>
                                 <li><a href="{% url 'categories' %}">Categories</a></li>
                             {% else %}
-                                <li><a href="{% url 'services' %}">Services</a></li>
+                                <li>
+                                    <details>
+                                        <summary>Services</summary>
+                                        <ul class="bg-secondary rounded-t-none p-2">
+                                            <!-- All Services Link -->
+                                            <li>
+                                                <a href="{% url 'services' %}" class="block px-4 py-2 font-semibold hover:bg-primary rounded-lg">
+                                                    All Services
+                                                </a>
+                                            </li>
+
+                                            <!-- Separator or Label -->
+                                            <li class="py-2 text-base-300 text-sm font-semibold uppercase tracking-wide">
+                                                Categories
+                                            </li>
+
+                                            <!-- Categories -->
+                                            {% for category in categories %}
+                                                <li>
+                                                    <a href="{% url 'services' %}?category={{ category.id }}" class="block px-4 py-2 hover:bg-primary rounded-lg">
+                                                        {{ category.name }}
+                                                    </a>
+                                                </li>
+                                            {% empty %}
+                                                <li>
+                                                    <p class="block px-4 py-2 text-gray-500">No categories available</p>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </details>
+                                </li>
                             {% endif %}
                         </ul>
                         </div>
@@ -37,29 +68,38 @@
                         <div class="navbar-end flex gap-4">
                             <div class="dropdown dropdown-end">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-primary mr-2">Bem-vindo(a), {{ user.username }}</span>
+                                    <!-- Notifications Button -->
+                                    <a href="{% url 'notifications' %}" class="btn btn-ghost btn-circle relative" id="notification-btn">
+                                        <i class="fas fa-bell text-2xl text-white"></i>
+                                    </a>
 
-                                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle bg-gray-300 text-black">
-                                        {% if user.profile.avatar %}
-                                            <img src="{{ user.profile.avatar.url }}" class="rounded-full" alt="avatar">
+                                    <!-- Profile Section -->
+                                    <span class="text-white mr-2">Welcome, {{ user.username }}</span>
+                                    <div class="relative" id="profile-dropdown">
+                                        <!-- Profile Avatar -->
+                                        <button tabindex="0" id="profile-btn" class="btn btn-circle bg-gray-300 text-black">
+                                            {% if user.profile.avatar %}
+                                                <img src="{{ user.profile.avatar.url }}" class="rounded-full" alt="avatar">
+                                            {% else %}
+                                                <span class="text-lg font-semibold">{{ user.username|slice:":1"|upper }}</span>
+                                            {% endif %}
+                                        </button>
 
-                                        {% else %}
-                                            <span class="text-lg font-semibold">{{ user.username|slice:":1"|upper }}</span>
-                                        {% endif %}
+                                        <!-- Profile Dropdown -->
+                                        <ul tabindex="0" id="profile-menu" class="menu menu-sm dropdown-content bg-white rounded-box z-[1] mt-3 w-52 p-2 shadow border-4 border-primary hidden">
+                                            <li><a href="{% url 'profile' user.id %}" class="justify-between">Profile</a></li>
+                                            {% if user.username != 'admin' and not user.is_provider %}
+                                                <li><a href="{% url 'myorders' %}" class="justify-between">My Orders</a></li>
+                                            {% endif %}
+                                            <li>
+                                                <a href="#" class="justify-between" onclick="document.getElementById('logout-form').submit()">Logout</a>
+                                                <form id="logout-form" action="{% url 'logout' %}" method="POST" class="hidden">
+                                                    {% csrf_token %}
+                                                </form>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </div>
-                                <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-                                    <li><a href="{% url 'profile' user.id %}" class="justify-between">Profile</a></li>
-                                    <li>
-                                        <a href="#" onclick="document.getElementById('logout-form').submit()">Logout</a>
-                                        <form id="logout-form" action="{% url 'logout' %}" method="POST" class="hidden">
-                                            {% csrf_token %}
-                                        </form>
-                                    </li>
-                                    {% if user.username != 'admin' and not user.is_provider %}
-                                        <li><a href="{% url 'myorders' %}">My Orders</a></li>
-                                    {% endif %}
-                                </ul>
                             </div>
                         </div>
                     {% else %}
@@ -72,10 +112,10 @@
 
                         <div class="navbar-end flex gap-2">
                             <ul class="menu menu-horizontal px-1 text-primary text-lg">
-                                <li>
+                                <li class="w-24 text-white rounded-3xl hover:bg-primary items-center">
                                     <a href="{% url 'login' %}" class="my-auto">Sign in</a>
                                 </li>
-                                <li class="bg-primary w-24 text-base-200 rounded-3xl hover:bg-primary">
+                                <li class="bg-white w-24 text-primary rounded-3xl hover:bg-base-100 items-center">
                                     <a href="{% url 'register' %}">Join us</a>
                                 </li>
                             </ul>
@@ -84,11 +124,35 @@
         </div>
     </div>
 
-    <div class="container mx-auto overflow-hidden">
+
+    <div class="container mx-auto overflow-hidden py-4 px-4">
+        {% include 'alerts.html' %}
         {% block content %}
         {% endblock %}
     </div>
 </body>
-</html>
+<script>
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => alert.remove());
+    }, 5000);  // Auto-dismiss after 5 seconds
 
+    document.addEventListener('click', function (event) {
+        const profileMenu = document.getElementById('profile-menu');
+        const profileButton = document.getElementById('profile-btn');
+        const notificationButton = document.getElementById('notification-btn');
+
+        // If clicking outside the profile menu, hide it
+        if (!profileMenu.contains(event.target) && !profileButton.contains(event.target)) {
+            profileMenu.classList.add('hidden');
+        }
+
+        // Toggle profile menu visibility
+        if (profileButton.contains(event.target)) {
+            profileMenu.classList.toggle('hidden');
+        }
+    });
+
+</script>
+</html>
 

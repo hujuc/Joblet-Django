@@ -3,7 +3,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
 from decimal import Decimal
-from datetime import datetime
 
 
 class Profile(models.Model):
@@ -37,8 +36,14 @@ class Provider(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def completed_services_count(self):
-        return self.services.filter(booking__status='completed').count()
+    def __str__(self):
+        return f"Provider: {self.profile.user.username}"
+
+    # Statistics functions
+
+    def total_services(self):
+        """Returns the total number of services offered by the provider."""
+        return self.services.count()
 
     def total_reviews(self):
         return self.reviews.count()
@@ -48,28 +53,61 @@ class Provider(models.Model):
             return self.reviews.aggregate(models.Avg('rating'))['rating__avg']
         return None
 
-    def __str__(self):
-        return self.profile.user.username
+    def total_bookings(self):
+        """Returns the total number of bookings for all services."""
+        return Booking.objects.filter(service__provider=self).count()
+
+    def bookings_by_status(self):
+        """Returns a dictionary of bookings grouped by status."""
+        statuses = Booking.objects.filter(service__provider=self).values('status').annotate(count=Count('id'))
+        return {status['status']: status['count'] for status in statuses}
+
+    def completed_bookings_percentage(self):
+        """Calculates the percentage of completed bookings."""
+        total = self.total_bookings()
+        completed = Booking.objects.filter(service__provider=self, status='completed').count()
+        return (completed / total * 100) if total > 0 else 0.0
+
+    def pending_bookings(self):
+        """Returns the total number of pending bookings."""
+        return Booking.objects.filter(service__provider=self, status='pending').count()
+
+    def cancelled_bookings(self):
+        """Returns the total number of cancelled bookings."""
+        return Booking.objects.filter(service__provider=self, status='cancelled').count()
+
+    def in_progress_bookings(self):
+        """Returns the total number of in progress bookings."""
+        return Booking.objects.filter(service__provider=self, status='in_progress').count()
+
+    def completed_bookings(self):
+        """Returns the total number of completed bookings."""
+        return Booking.objects.filter(service__provider=self, status='completed').count()
 
 
 
 class Chat(models.Model):
-    service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='chats')
-    client = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='client_chats')
-    provider = models.ForeignKey('Provider', on_delete=models.CASCADE, related_name='provider_chats')
+    booking = models.OneToOneField(
+        'Booking',
+        on_delete=models.CASCADE,
+        related_name='chat'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Chat between {self.client.user.username} and {self.provider.profile.user.username} for {self.service.title}"
+        return f"Chat for Booking {self.booking.id} - {self.booking.service.title} by {self.booking.customer.user.username}"
+
 
 class Message(models.Model):
-    chat = models.ForeignKey('Chat', on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='received_messages')
+    content = models.TextField(default='')
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Message from {self.sender.username} at {self.timestamp}"
+        return f"From {self.sender.user.username} to {self.recipient.user.username}"
 
 class Review(models.Model):
     provider = models.ForeignKey(Provider, related_name='reviews', on_delete=models.CASCADE)
@@ -111,10 +149,37 @@ class Service(models.Model):
         return self.title
 
 class Booking(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     customer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='bookings')
-    date = models.DateTimeField()
-    status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('completed', 'Completed'), ('cancelled', 'Cancelled')])
+    scheduled_time = models.DateTimeField()
+    details = models.TextField(blank=True, null=True)
+    status = models.CharField(
+        max_length=12,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted_at = models.DateTimeField(blank=True, null=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    cancelled_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.service.title} - {self.customer.user.username} - {self.status}"
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+    action_required = models.BooleanField(default=False)  # Novo campo para indicar ações pendentes
+
+    def __str__(self):
+        return f"Notification for {self.recipient.user.username} - {'Read' if self.read else 'Unread'}"

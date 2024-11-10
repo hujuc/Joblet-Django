@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from app.models import Profile, Review, Provider, Category, Service
+from app.models import Profile, Review, Provider, Category, Service, Message, Booking
 
 from django.db import transaction
 
@@ -189,3 +189,34 @@ class ServiceForm(forms.ModelForm):
         if commit:
             service.save()
         return service
+
+
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'placeholder': 'Type your message here...',
+                'rows': 3,
+            }),
+        }
+
+
+class BookingForm(forms.ModelForm):
+    class Meta:
+        model = Booking
+        fields = ['scheduled_time', 'details']
+        widgets = {
+            'scheduled_time': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'class': 'input input-bordered w-full',
+                'placeholder': 'Select a date and time',
+            }),
+            'details': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'placeholder': 'Add details about your booking',
+                'rows': 4,
+            }),
+        }

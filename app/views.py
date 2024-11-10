@@ -1,19 +1,20 @@
 import logging
-from django.db.models import Avg
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.shortcuts import render
-from django.contrib.auth import authenticate, login
+from datetime import timedelta
+
 from django.contrib import messages
-from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm, CategoryForm, AddBalanceForm, \
-    ProviderForm
-from django.contrib.auth import logout
-from django.shortcuts import redirect
-from django.views.decorators.http import require_http_methods
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Profile, Provider, Service, Category, Booking
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponseForbidden, JsonResponse
+from django.contrib.messages import get_messages
+from django.db.models import Q, Avg
+from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+
+from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm, CategoryForm, AddBalanceForm, \
+    ProviderForm, MessageForm, BookingForm
+from .models import Profile, Provider, Service, Category, Message, Booking, Chat, Notification
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,23 @@ def myservices(request):
     provider = get_object_or_404(Provider, profile=user_profile)
     user_services = Service.objects.filter(provider=provider)
     categories = Category.objects.all()  # Fetch categories here
-    return render(request, 'myservices.html', {'services': user_services, 'categories': categories})
+
+    # Contagem de bookings para cada serviço
+    services_with_counts = []
+    for service in user_services:
+        bookings_to_approve_count = Booking.objects.filter(service=service, status='pending', accepted_at__isnull=True).count()
+        bookings_in_progress_count = Booking.objects.filter(service=service, status='in_progress', accepted_at__isnull=False).count()
+
+        services_with_counts.append({
+            'service': service,
+            'bookings_to_approve_count': bookings_to_approve_count,
+            'bookings_in_progress_count': bookings_in_progress_count
+        })
+
+    return render(request, 'myservices.html', {
+        'services_with_counts': services_with_counts,
+        'categories': categories
+    })
 
 
 def categories(request):
@@ -101,8 +118,6 @@ def edit_service(request, service_id):
         return redirect('myservices')
 
     return render(request, 'edit_service.html', {'service': service, 'categories': categories})
-
-from datetime import timedelta
 
 
 @login_required
@@ -147,7 +162,7 @@ def delete_service(request, service_id):
     service.delete()
     return redirect('myservices')
 
-from django.http import JsonResponse
+
 def get_service_data(request, service_id):
     service = get_object_or_404(Service, pk=service_id)
     categories = Category.objects.all()
@@ -186,11 +201,11 @@ def register_view(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, f"Conta criada com sucesso para {user.username}!")
+            messages.success(request, f"Account created successfully for {user.username}!")
             login(request, user)
             return redirect('index')
         else:
-            messages.error(request, "Erro ao criar conta. Por favor, verifique os dados.")
+            messages.error(request, "Error creating account. Please check the inserted data.")
     else:
         form = CustomUserCreationForm()
 
@@ -199,16 +214,30 @@ def register_view(request):
 @require_http_methods(["POST"])
 def logout_view(request):
     logout(request)
-    messages.success(request, "Você foi desconectado com sucesso!")
-    return redirect('login')
+    messages.success(request, "You have logged out successfully!")
+    return redirect('index')
 
 def home(request):
     return render(request, 'index.html')
 
 def myorders(request):
-    return render(request, 'myorders.html')
+    # Ensure the user is authenticated
+    if not request.user.is_authenticated:
+        return redirect('login')  # Redirect to login if the user is not logged in
 
-from django.db.models import Avg, Q
+    # Get bookings grouped by status
+    pending_bookings = Booking.objects.filter(customer=request.user.profile, status='pending').select_related('service', 'service__provider')
+    in_progress_bookings = Booking.objects.filter(customer=request.user.profile, status='in_progress').select_related('service', 'service__provider')
+    completed_bookings = Booking.objects.filter(customer=request.user.profile, status='completed').select_related('service', 'service__provider')
+    cancelled_bookings = Booking.objects.filter(customer=request.user.profile, status='cancelled').select_related('service', 'service__provider')
+
+    context = {
+        'pending_bookings': pending_bookings,
+        'in_progress_bookings': in_progress_bookings,
+        'completed_bookings': completed_bookings,
+        'cancelled_bookings': cancelled_bookings,
+    }
+    return render(request, 'myorders.html', context)
 
 def services(request):
     # Get filter parameters from request
@@ -261,14 +290,16 @@ def services(request):
 
 
 def service_detail(request, service_id):
-    service = get_object_or_404(Service.objects.select_related('provider__profile__user').prefetch_related('provider__reviews'), id=service_id)
+    service = get_object_or_404(Service, id=service_id, is_active=True, approval='approved')
 
     # Calcular a média das avaliações do provedor
     avg_rating = service.provider.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
+    booking_form = BookingForm()
 
     context = {
         'service': service,
-        'avg_rating': avg_rating,  # Passar o avg_rating para o template
+        'avg_rating': avg_rating,
+        'booking_form': booking_form,
     }
     return render(request, 'service_detail.html', context)
 
@@ -277,10 +308,6 @@ def booking(request):
 
 def about(request):
     return render(request, 'about.html')
-
-from django.shortcuts import redirect
-
-from decimal import Decimal
 
 def profile(request, user_id):
     # Get the user's profile
@@ -294,7 +321,7 @@ def profile(request, user_id):
     review_form = ReviewForm()
     add_balance_form = AddBalanceForm()
 
-    booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-date')
+    booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-created_at')
 
     # Get the provider instance if it exists
     provider = user_profile.provider if hasattr(user_profile, 'provider') else None
@@ -322,7 +349,7 @@ def profile(request, user_id):
             if review_form.is_valid():
                 review = review_form.save(commit=False)
                 review.provider = provider
-                review.reviewer = user_profile
+                review.reviewer = request.user.profile
                 review.save()
                 return redirect('profile', user_id=user_id)
 
@@ -349,6 +376,70 @@ def profile(request, user_id):
     }
     return render(request, 'profile.html', context)
 
+@login_required
+def chat_view(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    chat, created = Chat.objects.get_or_create(booking=booking)
+
+    # Ensure only the customer or provider can access the chat
+    if request.user.profile not in [booking.customer, booking.service.provider.profile]:
+        messages.error(request, "You are not authorized to access this chat.")
+        return redirect('home')
+
+    # Rename the variable to avoid conflicts with Django messages
+    chat_messages = chat.messages.order_by('timestamp')
+
+    if request.method == "POST":
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.chat = chat
+            message.sender = request.user.profile
+            message.recipient = (
+                booking.service.provider.profile
+                if request.user.profile == booking.customer
+                else booking.customer
+            )
+            message.save()
+            messages.success(request, "Message sent successfully.")
+            return redirect('chat_view', booking_id=booking.id)
+    else:
+        form = MessageForm()
+
+    context = {
+        'chat': chat,
+        'booking': booking,
+        'chat_messages': chat_messages,  # Updated variable name
+        'form': form,
+    }
+    return render(request, 'chat.html', context)
+
+
+def message_thread(request, recipient_id):
+    recipient = get_object_or_404(Profile, id=recipient_id)
+    messages = Message.objects.filter(
+        (Q(sender=request.user.profile) & Q(recipient=recipient)) |
+        (Q(sender=recipient) & Q(recipient=request.user.profile))
+    ).order_by('timestamp')
+
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = request.user.profile
+            message.recipient = recipient
+            message.save()
+            return redirect('message_thread', recipient_id=recipient_id)
+    else:
+        form = MessageForm()
+
+    context = {
+        'messages': messages,
+        'form': form,
+        'recipient': recipient,
+    }
+    return render(request, 'message_thread.html', context)
+
 
 def edit_profile(request, user_id):
     profile = get_object_or_404(Profile, user__id=user_id)
@@ -367,42 +458,57 @@ def edit_profile(request, user_id):
 
     return render(request, 'profile.html', {'form': form, 'profile': profile})
 
-from django.utils import timezone
-
 @login_required
 def book_service(request, service_id):
-    # Obtém o serviço pelo ID
-    service = get_object_or_404(Service, id=service_id)
-    profile = Profile.objects.get(user=request.user)  # Obtém o perfil do usuário logado
+    service = get_object_or_404(Service, id=service_id, is_active=True, approval='approved')
+    user_profile = request.user.profile  # Assuming a one-to-one relationship between User and Profile
 
     if request.method == "POST":
-        # Verificar se o saldo do usuário é suficiente para o serviço
-        if profile.wallet < service.price:
-            messages.error(request, "Saldo insuficiente para requisitar este serviço.")
+        form = BookingForm(request.POST)
+        if form.is_valid():
+            # Check if the user has enough balance
+            if user_profile.wallet < service.price:
+                messages.error(request, "You don't have enough balance to book this service. Please add funds to your wallet.")
+                return redirect('service_detail', service_id=service_id)
+
+            # Deduct the service price from the user's wallet
+            user_profile.wallet -= service.price
+            user_profile.save()
+
+            # Create booking
+            booking = form.save(commit=False)
+            booking.service = service
+            booking.customer = user_profile
+            booking.save()
+
+            # Notify the provider
+            Notification.objects.create(
+                recipient=service.provider.profile,
+                message=f"{request.user.username} has booked your service '{service.title}'.",
+                booking=booking,
+                action_required=True
+            )
+            messages.success(request, "Booking successful! Your request has been sent to the provider.")
+            return redirect('service_detail', service_id=service_id)
+        else:
+            messages.error(request, "Invalid booking details. Please try again.")
             return redirect('service_detail', service_id=service_id)
 
-        # Deduzir o valor do serviço da carteira do usuário
-        profile.wallet -= service.price
-        profile.save()  # Salva o novo saldo na carteira do usuário
+    else:
+        form = BookingForm()
 
-        # Criar a reserva
-        date_str = request.POST.get("date")  # Recebe a data do formulário (YYYY-MM-DDTHH:MM)
-        try:
-            date = timezone.datetime.strptime(date_str, "%Y-%m-%dT%H:%M")
-            Booking.objects.create(service=service, customer=profile, date=date, status="pending")
-            messages.success(request, f"Reserva para {service.title} em {date} criada com sucesso. Valor deduzido da carteira.")
-        except ValueError:
-            messages.error(request, "Formato de data inválido. Por favor, use o formato correto.")
-
-    return redirect('profile', user_id=request.user.id)
+    return render(request, 'service_detail.html', {'service': service, 'form': form})
 
 @login_required
 def update_booking_status(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
 
-    # Permitir que apenas o cliente do pedido o marque como concluído
     if request.user.profile != booking.customer:
-        messages.error(request, "Você não tem permissão para alterar o status desta reserva.")
+        messages.error(request, "You do not have permission to change the status of this booking.")
+        return redirect('profile', user_id=request.user.id)
+
+    if not booking.accepted_at:
+        messages.warning(request, "This booking has not been accepted by the provider yet.")
         return redirect('profile', user_id=request.user.id)
 
     if booking.status != 'completed':
@@ -413,8 +519,67 @@ def update_booking_status(request, booking_id):
         provider_profile.wallet += booking.service.price
         provider_profile.save()
 
-        messages.success(request, "Status da reserva atualizado para 'concluído' e valor depositado na carteira.")
+        messages.success(request, "Booking status updated to 'completed' and amount deposited in wallet.")
     else:
-        messages.info(request, "Esta reserva já foi concluída.")
+        messages.info(request, "This booking has already been marked as completed.")
 
     return redirect('profile', user_id=request.user.id)
+
+@login_required
+def notifications(request):
+    user_profile = Profile.objects.get(user=request.user)
+    notifications = user_profile.notifications.order_by('-created_at')
+    return render(request, 'notifications.html', {'notifications': notifications})
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
+    notification.read = True
+    notification.save()
+    return redirect('notifications')
+
+@login_required
+def pending_bookings(request, service_id):
+    service = get_object_or_404(Service, id=service_id, provider__profile__user=request.user)
+    pending_bookings = Booking.objects.filter(service=service, status='pending', accepted_at__isnull=True)
+    return render(request, 'pending_bookings.html', {'bookings': pending_bookings, 'service': service})
+
+@login_required
+def in_progress_bookings(request, service_id):
+    service = get_object_or_404(Service, id=service_id, provider__profile__user=request.user)
+    in_progress_bookings = Booking.objects.filter(service=service, status='in_progress', accepted_at__isnull=False)
+    return render(request, 'in_progress_bookings.html', {'bookings': in_progress_bookings, 'service': service})
+
+@login_required
+def accept_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id, service__provider__profile__user=request.user)
+
+    # Update the booking status and approval flag
+    booking.accepted_at = timezone.now()
+    booking.status = 'in_progress'
+    booking.save()  # Save the changes
+
+    # Confirmation message
+    messages.success(request, "Booking accepted successfully.")
+    return redirect('pending_bookings', service_id=booking.service.id)
+
+@login_required
+def reject_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id, service__provider__profile__user=request.user)
+    booking.status = 'cancelled'
+    booking.save()
+    messages.success(request, "Booking rejected successfully.")
+    return redirect('pending_bookings', service_id=booking.service.id)
+
+def user_chats(request):
+    profile = request.user.profile
+
+    # Get chats where the user is a customer or provider
+    customer_chats = Chat.objects.filter(booking__customer=profile).select_related('booking__service', 'booking__service__provider')
+    provider_chats = Chat.objects.filter(booking__service__provider__profile=profile).select_related('booking__customer')
+
+    context = {
+        'customer_chats': customer_chats,
+        'provider_chats': provider_chats,
+    }
+    return render(request, 'chats.html', context)

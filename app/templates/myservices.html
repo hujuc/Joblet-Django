@@ -11,7 +11,7 @@
     <div class="bg-base-200 rounded-lg p-4">
         <div class="flex flex-wrap gap-4">
             {# If no services found #}
-            {% if services|length == 0 %}
+            {% if services_with_counts|length == 0 %}
                 <div>
                     <h2 class="card-title
                         text-center
@@ -27,7 +27,8 @@
                     </p>
                 </div>
             {% endif %}
-            {% for service in services %}
+            {% for service_data in services_with_counts %}
+                {% with service=service_data.service %}
                 <div class="card bg-base-100 w-96 shadow-xl relative">
                     <!-- Dropdown Button -->
                     <div class="absolute top-2 right-2">
@@ -42,9 +43,13 @@
 
                     <!-- Service Image -->
                     {% if service.image %}
-                        <figure>
+                        <figure class="w-full h-52 overflow-hidden">
                             <img src="{{ service.image.url }}" alt="{{ service.title }}" />
                         </figure>
+                    {% else %}
+                        <div class="w-full h-52 bg-gray-200 flex items-center justify-center">
+                            <span class="text-gray-500">No Image</span>
+                        </div>
                     {% endif %}
 
                     <!-- Service Details -->
@@ -55,8 +60,18 @@
                             <div class="badge badge-outline">{{ service.category }}</div>
                             <div class="badge badge-outline">{{ service.approval }}</div>
                         </div>
+
+                        <div class="flex justify-center gap-4 mt-4">
+                            <a href="{% url 'pending_bookings' service.id %}" class="btn btn-sm btn-primary text-white text-xs">
+                                Bookings To Approve ({{ service_data.bookings_to_approve_count }})
+                            </a>
+                            <a href="{% url 'in_progress_bookings' service.id %}" class="btn btn-sm btn-secondary text-white text-xs">
+                                Bookings In Progress ({{ service_data.bookings_in_progress_count }})
+                            </a>
+                        </div>
                     </div>
                 </div>
+                {% endwith %}
             {% endfor %}
         </div>
     </div>
