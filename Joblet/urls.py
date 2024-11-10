@@ -63,8 +63,8 @@ urlpatterns = [
 
     # Notifications
     path('notifications/', views.notifications, name='notifications'),
-    path('notifications/read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
-
+    path('notifications/mark-as-read/<int:notification_id>/', views.mark_notification_as_read,
+         name='mark_notification_as_read'),
     # Bookings
     path('myservices/<int:service_id>/pending_bookings/', views.pending_bookings, name='pending_bookings'),
     path('myservices/<int:service_id>/in_progress_bookings/', views.in_progress_bookings, name='in_progress_bookings'),

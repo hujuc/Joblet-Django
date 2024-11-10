@@ -512,7 +512,7 @@ def book_service(request, service_id):
             # Notify the provider
             Notification.objects.create(
                 recipient=service.provider.profile,
-                message=f"{request.user.username} has booked your service '{service.title}'.",
+                message=f"New booking for the service '{service.title}'.",
                 booking=booking,
                 action_required=True
             )
@@ -558,17 +558,42 @@ def update_booking_status(request, booking_id):
 
     return redirect('profile', user_id=request.user.id)
 
+from django.db.models import Count, Max, Subquery, OuterRef
+
 @login_required
 def notifications(request):
     user_profile = Profile.objects.get(user=request.user)
-    notifications = user_profile.notifications.order_by('-created_at')
+
+    # Get the ID of a representative notification in each group (for example, the most recent one)
+    representative_ids = Notification.objects.filter(
+        message=OuterRef('message'),
+        read=OuterRef('read'),
+        recipient=user_profile
+    ).values('id')[:1]
+
+    # Group notifications by message and read status, and count them
+    notifications = (
+        user_profile.notifications
+        .values('message', 'read')  # Group by message and read status
+        .annotate(
+            count=Count('id'),
+            latest_created_at=Max('created_at'),
+            representative_id=Subquery(representative_ids)  # Get a single ID from each group
+        )
+        .order_by('read', '-latest_created_at')  # Order unread notifications first
+    )
+
     return render(request, 'notifications.html', {'notifications': notifications})
+
+
+
 
 @login_required
 def mark_notification_as_read(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
     notification.read = True
     notification.save()
+    messages.success(request, "Notification marked as read.")
     return redirect('notifications')
 
 @login_required
