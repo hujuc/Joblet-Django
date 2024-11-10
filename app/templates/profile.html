@@ -222,41 +222,44 @@
             </div>
         {% endif %}
 
-        <!-- Statistics Section -->
-        <div class="mt-6">
-            <h2 class="text-2xl font-semibold">Statistics</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                <!-- Total Services Offered -->
-                <div class="bg-base-200 p-4 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold">Total Services Offered</h3>
-                    <p class="text-3xl font-semibold">{{ total_services }}</p>
-                </div>
+        {% if is_provider %}
+            <!-- Statistics Section -->
+            <div class="mt-6">
+                <h2 class="text-2xl font-semibold">Statistics</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                    <!-- Total Services Offered -->
+                    <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold">Total Services Offered</h3>
+                        <p class="text-3xl font-semibold">{{ profile.provider.total_services }}</p>
+                    </div>
 
-                <!-- Total Services Booked -->
-                <div class="bg-base-200 p-4 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold">Total Services Booked</h3>
-                    <p class="text-3xl font-semibold">{{ total_bookings }}</p>
-                </div>
+                    <!-- Total Services Booked -->
+                    <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold">Total Services Booked</h3>
+                        <p class="text-3xl font-semibold">{{ profile.provider.total_bookings }}</p>
+                    </div>
 
-                <!-- Completed Services -->
-                <div class="bg-base-200 p-4 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold">Completed Services</h3>
-                    <p class="text-3xl font-semibold">{{ completed_bookings }}</p>
-                </div>
+                    <!-- Completed Services -->
+                    <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold">Completed Services</h3>
+                        <p class="text-3xl font-semibold">{{ profile.provider.completed_bookings }}</p>
+                    </div>
 
-                <!-- Cancelled Services -->
-                <div class="bg-base-200 p-4 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold">Cancelled Services</h3>
-                    <p class="text-3xl font-semibold">{{ cancelled_bookings }}</p>
-                </div>
+                    <!-- Cancelled Services -->
+                    <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold">Cancelled Services</h3>
+                        <p class="text-3xl font-semibold">{{ profile.provider.cancelled_bookings }}</p>
+                    </div>
 
-                <!-- In Progress Services -->
-                <div class="bg-base-200 p-4 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold">In Progress Services</h3>
-                    <p class="text-3xl font-semibold">{{ in_progress_bookings }}</p>
+                    <!-- In Progress Services -->
+                    <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold">In Progress Services</h3>
+                        <p class="text-3xl font-semibold">{{ profile.provider.in_progress_bookings }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
+
 
         <!-- Reviews Section -->
         {% if is_provider %}

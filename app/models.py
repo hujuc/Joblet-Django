@@ -36,8 +36,14 @@ class Provider(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def completed_services_count(self):
-        return self.services.filter(booking__status='completed').count()
+    def __str__(self):
+        return f"Provider: {self.profile.user.username}"
+
+    # Statistics functions
+
+    def total_services(self):
+        """Returns the total number of services offered by the provider."""
+        return self.services.count()
 
     def total_reviews(self):
         return self.reviews.count()
@@ -47,8 +53,36 @@ class Provider(models.Model):
             return self.reviews.aggregate(models.Avg('rating'))['rating__avg']
         return None
 
-    def __str__(self):
-        return self.profile.user.username
+    def total_bookings(self):
+        """Returns the total number of bookings for all services."""
+        return Booking.objects.filter(service__provider=self).count()
+
+    def bookings_by_status(self):
+        """Returns a dictionary of bookings grouped by status."""
+        statuses = Booking.objects.filter(service__provider=self).values('status').annotate(count=Count('id'))
+        return {status['status']: status['count'] for status in statuses}
+
+    def completed_bookings_percentage(self):
+        """Calculates the percentage of completed bookings."""
+        total = self.total_bookings()
+        completed = Booking.objects.filter(service__provider=self, status='completed').count()
+        return (completed / total * 100) if total > 0 else 0.0
+
+    def pending_bookings(self):
+        """Returns the total number of pending bookings."""
+        return Booking.objects.filter(service__provider=self, status='pending').count()
+
+    def cancelled_bookings(self):
+        """Returns the total number of cancelled bookings."""
+        return Booking.objects.filter(service__provider=self, status='cancelled').count()
+
+    def in_progress_bookings(self):
+        """Returns the total number of in progress bookings."""
+        return Booking.objects.filter(service__provider=self, status='in_progress').count()
+
+    def completed_bookings(self):
+        """Returns the total number of completed bookings."""
+        return Booking.objects.filter(service__provider=self, status='completed').count()
 
 
 
