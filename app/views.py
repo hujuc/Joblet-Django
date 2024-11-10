@@ -288,21 +288,17 @@ def services(request):
     }
     return render(request, 'services.html', context)
 
-from django.urls import reverse
-
 def service_detail(request, service_id):
     service = get_object_or_404(Service, id=service_id, is_active=True, approval='approved')
 
     # Calcular a média das avaliações do provedor
     avg_rating = service.provider.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
     booking_form = BookingForm()
-    referer_url = request.META.get('HTTP_REFERER', reverse('services'))
 
     context = {
         'service': service,
         'avg_rating': avg_rating,
         'booking_form': booking_form,
-        'referer_url': referer_url,
     }
     return render(request, 'service_detail.html', context)
 
