@@ -349,7 +349,7 @@ def profile(request, user_id):
             if review_form.is_valid():
                 review = review_form.save(commit=False)
                 review.provider = provider
-                review.reviewer = user_profile
+                review.reviewer = request.user.profile
                 review.save()
                 return redirect('profile', user_id=user_id)
 
