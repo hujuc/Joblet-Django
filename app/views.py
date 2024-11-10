@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.messages import get_messages
 from django.db.models import Q, Avg
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
@@ -382,9 +383,11 @@ def chat_view(request, booking_id):
 
     # Ensure only the customer or provider can access the chat
     if request.user.profile not in [booking.customer, booking.service.provider.profile]:
+        messages.error(request, "You are not authorized to access this chat.")
         return redirect('home')
 
-    messages = chat.messages.order_by('timestamp')
+    # Rename the variable to avoid conflicts with Django messages
+    chat_messages = chat.messages.order_by('timestamp')
 
     if request.method == "POST":
         form = MessageForm(request.POST)
@@ -398,36 +401,18 @@ def chat_view(request, booking_id):
                 else booking.customer
             )
             message.save()
+            messages.success(request, "Message sent successfully.")
             return redirect('chat_view', booking_id=booking.id)
     else:
         form = MessageForm()
 
     context = {
         'chat': chat,
-        'booking': booking,  # Pass the booking object for details
-        'messages': messages,
+        'booking': booking,
+        'chat_messages': chat_messages,  # Updated variable name
         'form': form,
     }
     return render(request, 'chat.html', context)
-
-def send_message(request, recipient_id):
-    recipient = get_object_or_404(Profile, id=recipient_id)
-    if request.method == 'POST':
-        form = MessageForm(request.POST)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.sender = request.user.profile  # Assuming Profile is linked to User
-            message.recipient = recipient
-            message.save()
-            return redirect('inbox')  # Redirect to the inbox or a relevant page
-    else:
-        form = MessageForm()
-
-    context = {
-        'form': form,
-        'recipient': recipient,
-    }
-    return render(request, 'send_message.html', context)
 
 
 def message_thread(request, recipient_id):

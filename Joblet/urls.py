@@ -60,7 +60,6 @@ urlpatterns = [
     # Chat
     path('booking/<int:booking_id>/chat/', views.chat_view, name='chat_view'),
     path('chats/', views.user_chats, name='user_chats'),
-    path('message/<int:recipient_id>/', views.send_message, name='send_message'),
 
     # Notifications
     path('notifications/', views.notifications, name='notifications'),

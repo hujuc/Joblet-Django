@@ -281,7 +281,7 @@
                                     {% if review.reviewer.user.profile.avatar %}
                                         <img src="{{ review.reviewer.user.profile.avatar.url }}" alt="{{ review.reviewer.user.username }}" class="w-8 h-8 rounded-full">
                                     {% else %}
-                                        <span class="text-white text-2xl font-semibold bg-primary w-8 h-8 flex items-center justify-center">
+                                        <span class="text-white text-xl font-semibold bg-primary w-8 h-8 flex items-center justify-center rounded-full">
                                             {{ review.reviewer.user.username|slice:":1"|upper }}
                                         </span>
                                     {% endif %}

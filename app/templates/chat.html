@@ -15,20 +15,20 @@
 
 <!-- Chat Messages -->
 <div class="bg-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto chat-messages">
-    {% for message in messages %}
-        <div class="mb-4 {% if message.sender == request.user.profile %}text-right{% else %}text-left{% endif %}">
+    {% for chat_message in chat_messages %}
+        <div class="mb-4 {% if chat_message.sender == request.user.profile %}text-right{% else %}text-left{% endif %}">
             <p class="font-semibold text-primary">
-                {% if message.sender == request.user.profile %}
+                {% if chat_message.sender == request.user.profile %}
                     You
                 {% else %}
-                    {{ message.sender.user.username }}
+                    {{ chat_message.sender.user.username }}
                 {% endif %}
             </p>
-            <p class="text-sm inline-block rounded-lg p-2 shadow-md {% if message.sender == request.user.profile %}bg-primary text-white{% else %}bg-gray-200{% endif %}">
-                {{ message.content }}
+            <p class="text-sm inline-block rounded-lg p-2 shadow-md {% if chat_message.sender == request.user.profile %}bg-primary text-white{% else %}bg-gray-200{% endif %}">
+                {{ chat_message.content }}
             </p>
             <p class="text-xs text-gray-500">
-                {{ message.timestamp|date:"M d, Y H:i" }}
+                {{ chat_message.timestamp|date:"M d, Y H:i" }}
             </p>
         </div>
     {% empty %}
