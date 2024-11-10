@@ -11,7 +11,7 @@
                 <p>Scheduled Date: {{ booking.scheduled_time }}</p>
                 <p>Details: {{ booking.details }}</p>
                 <p>Status: {{ booking.status }}</p>
-                <button class="btn btn-sm btn-primary text-white mt-4">Chat</button>
+                <a class="btn btn-sm btn-primary text-white mt-4" href="{% url 'chat_view' booking.id %}">Chat</a>
             </div>
         </div>
     {% empty %}

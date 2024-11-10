@@ -172,3 +172,14 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"{self.service.title} - {self.customer.user.username} - {self.status}"
+
+class Notification(models.Model):
+    recipient = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+    action_required = models.BooleanField(default=False)  # Novo campo para indicar ações pendentes
+
+    def __str__(self):
+        return f"Notification for {self.recipient.user.username} - {'Read' if self.read else 'Unread'}"
