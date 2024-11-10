@@ -271,3 +271,4 @@ cover/
 
 # Translations
 *.mo
+!/app/scripts/populate_db.py
