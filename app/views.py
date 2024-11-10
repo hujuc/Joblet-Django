@@ -201,11 +201,11 @@ def register_view(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, f"Conta criada com sucesso para {user.username}!")
+            messages.success(request, f"Account created successfully for {user.username}!")
             login(request, user)
             return redirect('index')
         else:
-            messages.error(request, "Erro ao criar conta. Por favor, verifique os dados.")
+            messages.error(request, "Error creating account. Please check the inserted data.")
     else:
         form = CustomUserCreationForm()
 
@@ -214,8 +214,8 @@ def register_view(request):
 @require_http_methods(["POST"])
 def logout_view(request):
     logout(request)
-    messages.success(request, "Você foi desconectado com sucesso!")
-    return redirect('login')
+    messages.success(request, "You have logged out successfully!")
+    return redirect('index')
 
 def home(request):
     return render(request, 'index.html')
@@ -430,12 +430,6 @@ def send_message(request, recipient_id):
     }
     return render(request, 'send_message.html', context)
 
-# def inbox(request):
-#     messages = Message.objects.filter(recipient=request.user.profile).order_by('-timestamp')
-#     context = {
-#         'messages': messages,
-#     }
-#     return render(request, 'inbox.html', context)
 
 def message_thread(request, recipient_id):
     recipient = get_object_or_404(Profile, id=recipient_id)
@@ -526,11 +520,11 @@ def update_booking_status(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
 
     if request.user.profile != booking.customer:
-        messages.error(request, "Você não tem permissão para alterar o status desta reserva.")
+        messages.error(request, "You do not have permission to change the status of this booking.")
         return redirect('profile', user_id=request.user.id)
 
     if not booking.accepted_at:
-        messages.warning(request, "Esta reserva ainda não foi aprovada pelo provedor.")
+        messages.warning(request, "This booking has not been accepted by the provider yet.")
         return redirect('profile', user_id=request.user.id)
 
     if booking.status != 'completed':
@@ -541,9 +535,9 @@ def update_booking_status(request, booking_id):
         provider_profile.wallet += booking.service.price
         provider_profile.save()
 
-        messages.success(request, "Status da reserva atualizado para 'concluído' e valor depositado na carteira.")
+        messages.success(request, "Booking status updated to 'completed' and amount deposited in wallet.")
     else:
-        messages.info(request, "Esta reserva já foi concluída.")
+        messages.info(request, "This booking has already been marked as completed.")
 
     return redirect('profile', user_id=request.user.id)
 
@@ -582,7 +576,7 @@ def accept_booking(request, booking_id):
     booking.save()  # Save the changes
 
     # Confirmation message
-    messages.success(request, "Booking aprovado com sucesso.")
+    messages.success(request, "Booking accepted successfully.")
     return redirect('pending_bookings', service_id=booking.service.id)
 
 @login_required
@@ -590,7 +584,7 @@ def reject_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, service__provider__profile__user=request.user)
     booking.status = 'cancelled'
     booking.save()
-    messages.success(request, "Booking rejeitado com sucesso.")
+    messages.success(request, "Booking rejected successfully.")
     return redirect('pending_bookings', service_id=booking.service.id)
 
 def user_chats(request):
