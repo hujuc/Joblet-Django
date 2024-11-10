@@ -129,6 +129,12 @@ class Review(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
+    icon = models.CharField(
+        max_length=50,
+        help_text="Enter the CSS class or icon name (e.g., 'fas fa-paint-brush')",
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         return self.name

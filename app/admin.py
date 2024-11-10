@@ -4,7 +4,6 @@ from django.utils.dateparse import parse_datetime
 from app.models import *
 
 admin.site.register(Profile)
-admin.site.register(Category)
 admin.site.register(Service)
 admin.site.register(Review)
 admin.site.register(Chat)
@@ -26,3 +25,8 @@ class BookingAdmin(admin.ModelAdmin):
         if date and time:
             obj.scheduled_time = parse_datetime(f"{date} {time}")
         super().save_model(request, obj, form, change)
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'icon')
+    list_editable = ('icon',)

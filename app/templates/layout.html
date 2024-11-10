@@ -50,7 +50,12 @@
                                             <!-- Categories -->
                                             {% for category in categories %}
                                                 <li>
-                                                    <a href="{% url 'services' %}?category={{ category.id }}" class="block px-4 py-2 hover:bg-secondary rounded-lg">
+                                                    <a href="{% url 'services' %}?category={{ category.id }}" class="block px-2 py-2 hover:bg-secondary rounded-lg flex gap-4">
+                                                        {% if category.icon %}
+                                                            <i class="{{ category.icon }}"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-tag"></i>
+                                                        {% endif %}
                                                         {{ category.name }}
                                                     </a>
                                                 </li>
@@ -112,9 +117,9 @@
                             </div>
                         </div>
                     {% else %}
-                        <ul class="menu menu-horizontal px-1 text-primary text-lg">
+                        <ul class="menu menu-horizontal px-1 text-white text-lg">
                             <li><a href="{% url 'services' %}">Services</a></li>
-                            <li><a href="{% url 'categories' %}">Categories</a></li>
+{#                            <li><a href="{% url 'categories' %}">Categories</a></li>#}
                             <li><a href="{% url 'providers' %}">Providers</a></li>
                         </ul>
                         </div>
