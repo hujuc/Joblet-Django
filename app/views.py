@@ -24,6 +24,8 @@ def pendingservices(request):
     services_pending = Service.objects.filter(approval='pending approval')
     return render(request, 'pendingservices.html', {'services_pending': services_pending})
 
+# import logging
+# logger = logging.getLogger(__name__)
 
 def approve_service(request, service_id):
     if not request.user.is_authenticated or not request.user.is_superuser:
@@ -33,10 +35,11 @@ def approve_service(request, service_id):
         service.approval = 'approved'
         service.save()
 
-        Notification.objects.create(
+        notification = Notification.objects.create(
             recipient=service.provider.profile,
             message=f"Your service '{service.title}' has been approved by an administrator and is now visible to customers."
         )
+        # logger.debug(f"Notification created: {notification}")
 
         return redirect('pendingservices')
 
