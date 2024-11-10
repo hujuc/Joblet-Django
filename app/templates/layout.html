@@ -14,13 +14,13 @@
 
 <body data-theme="nord">
     <div class="min-h-screen w-screen bg-white">
-        <div class="navbar bg-base-200">
+        <div class="navbar bg-primary">
             <div class="container mx-auto">
                 <div class="navbar-start flex items-center gap-4">
-                    <a class="btn btn-ghost text-3xl text-primary" href="{% url 'index' %}">joblet.</a>
+                    <a class="btn btn-ghost text-3xl text-white" href="{% url 'index' %}">joblet.</a>
 
                     {% if user.is_authenticated %}
-                        <ul class="menu menu-horizontal px-1 text-primary text-lg">
+                        <ul class="menu menu-horizontal px-1 text-white text-lg">
                             {% if user.profile.is_provider %}
                                 <li><a href="{% url 'myservices' %}">My Services</a></li>
                                 <li><a href="{% url 'user_chats' %}">Chat</a></li>
@@ -33,7 +33,7 @@
                                 <li>
                                     <details>
                                         <summary>Services</summary>
-                                        <ul class="bg-base-100 rounded-t-none p-2">
+                                        <ul class="bg-secondary rounded-t-none p-2">
                                             <!-- All Services Link -->
                                             <li>
                                                 <a href="{% url 'services' %}" class="block px-4 py-2 font-semibold hover:bg-base-300 rounded-lg">
@@ -71,7 +71,7 @@
 {#                                    <a href="{% url 'notifications' %}" class="btn btn-ghost btn-circle relative">#}
 {#                                        <i class="fas fa-bell text-2xl text-primary"></i>#}
 {#                                    </a>#}
-                                    <span class="text-primary mr-2">Welcome, {{ user.username }}</span>
+                                    <span class="text-white mr-2">Welcome, {{ user.username }}</span>
 
                                     <div tabindex="0" role="button" class="btn btn-ghost btn-circle bg-gray-300 text-black">
                                         {% if user.profile.avatar %}
@@ -82,13 +82,13 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+                                <ul tabindex="0" class="menu menu-sm dropdown-content bg-white rounded-box z-[1] mt-3 w-52 p-2 shadow border-4 border-primary">
                                     <li><a href="{% url 'profile' user.id %}" class="justify-between">Profile</a></li>
                                     {% if user.username != 'admin' and not user.is_provider %}
-                                        <li><a href="{% url 'myorders' %}">My Orders</a></li>
+                                        <li><a href="{% url 'myorders' %}" class="justify-between">My Orders</a></li>
                                     {% endif %}
                                     <li>
-                                        <a href="#" onclick="document.getElementById('logout-form').submit()">Logout</a>
+                                        <a href="#" class="justify-between" onclick="document.getElementById('logout-form').submit()">Logout</a>
                                         <form id="logout-form" action="{% url 'logout' %}" method="POST" class="hidden">
                                             {% csrf_token %}
                                         </form>
