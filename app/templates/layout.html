@@ -34,10 +34,10 @@
                                 <li>
                                     <details>
                                         <summary>Services</summary>
-                                        <ul class="bg-secondary rounded-t-none p-2">
+                                        <ul class="bg-primary rounded-t-none px-2 z-10 shadow-xl w-52">
                                             <!-- All Services Link -->
                                             <li>
-                                                <a href="{% url 'services' %}" class="block px-4 py-2 font-semibold hover:bg-primary rounded-lg">
+                                                <a href="{% url 'services' %}" class="block pl-4 font-semibold hover:bg-secondary rounded-lg">
                                                     All Services
                                                 </a>
                                             </li>
@@ -50,7 +50,7 @@
                                             <!-- Categories -->
                                             {% for category in categories %}
                                                 <li>
-                                                    <a href="{% url 'services' %}?category={{ category.id }}" class="block px-4 py-2 hover:bg-primary rounded-lg">
+                                                    <a href="{% url 'services' %}?category={{ category.id }}" class="block px-4 py-2 hover:bg-secondary rounded-lg">
                                                         {{ category.name }}
                                                     </a>
                                                 </li>
