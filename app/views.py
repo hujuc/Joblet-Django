@@ -554,13 +554,13 @@ def mark_notification_as_read(request, notification_id):
 @login_required
 def pending_bookings(request, service_id):
     service = get_object_or_404(Service, id=service_id, provider__profile__user=request.user)
-    pending_bookings = Booking.objects.filter(service=service, accepted_at__isnull=True)
+    pending_bookings = Booking.objects.filter(service=service, status='pending', accepted_at__isnull=True)
     return render(request, 'pending_bookings.html', {'bookings': pending_bookings, 'service': service})
 
 @login_required
 def in_progress_bookings(request, service_id):
     service = get_object_or_404(Service, id=service_id, provider__profile__user=request.user)
-    in_progress_bookings = Booking.objects.filter(service=service, status='pending', accepted_at__isnull=False)
+    in_progress_bookings = Booking.objects.filter(service=service, status='in_progress', accepted_at__isnull=False)
     return render(request, 'in_progress_bookings.html', {'bookings': in_progress_bookings, 'service': service})
 
 @login_required
@@ -569,7 +569,7 @@ def accept_booking(request, booking_id):
 
     # Update the booking status and approval flag
     booking.accepted_at = timezone.now()
-    booking.status = 'pending'  # Ensure the status is set to pending
+    booking.status = 'in_progress'
     booking.save()  # Save the changes
 
     # Confirmation message
