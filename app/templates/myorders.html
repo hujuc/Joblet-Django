@@ -36,8 +36,16 @@
                 <p class="text-sm">Status: <span class="badge badge-info">{{ booking.get_status_display }}</span></p>
 
                 <div class="flex justify-end mt-4">
+                    {% if booking.status != 'completed' and booking.accepted_at and user == booking.customer.user %}
+                        <form method="POST" action="{% url 'update_booking_status' booking.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-success text-white mr-2">Mark as Completed</button>
+                        </form>
+                    {% endif %}
                     <a href="{% url 'chat_view' booking.id %}" class="btn btn-primary btn-sm text-white">Chat</a>
                 </div>
+
+
             </div>
         {% empty %}
             <p class="text-gray-500 col-span-full text-center">No bookings are currently in progress.</p>
@@ -57,7 +65,7 @@
                 <p class="text-sm">Status: <span class="badge badge-success">{{ booking.get_status_display }}</span></p>
 
                 <div class="flex justify-end mt-4">
-                    <a href="{% url 'chat_view' booking.id %}" class="btn btn-primary btn-sm">Chat</a>
+                    <a href="{% url 'chat_view' booking.id %}" class="btn btn-primary btn-sm text-white">Chat</a>
                 </div>
             </div>
         {% empty %}

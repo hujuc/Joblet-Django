@@ -283,22 +283,6 @@
                                     </div>
                                     <div class="flex items-center gap-4">
                                         <span class="text-primary font-semibold">${{ booking.service.price|floatformat:2 }}</span>
-
-                                        {% if not booking.accepted_at and user == booking.service.provider.profile.user %}
-                                            <!-- Botão para o provedor aprovar a reserva -->
-                                            <form method="POST" action="{% url 'approve_booking' booking.id %}">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-success">Aprovar Reserva</button>
-                                            </form>
-                                        {% endif %}
-
-                                        {% if booking.status != 'completed' and booking.accepted_at and user == booking.customer.user and booking.status != 'cancelled' %}
-                                            <!-- Botão para o cliente marcar como concluído -->
-                                            <form method="POST" action="{% url 'update_booking_status' booking.id %}">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-success">Marcar como Concluído</button>
-                                            </form>
-                                        {% endif %}
                                     </div>
                                 </div>
                             </div>

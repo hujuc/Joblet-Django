@@ -600,7 +600,7 @@ def update_booking_status(request, booking_id):
     else:
         messages.info(request, "This booking has already been marked as completed.")
 
-    return redirect('profile', user_id=request.user.id)
+    return redirect('myorders')
 
 from django.db.models import Count, Max, Subquery, OuterRef
 
