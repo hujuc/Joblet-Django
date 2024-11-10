@@ -72,7 +72,15 @@
                                     <!-- Notifications Button -->
                                     <a href="{% url 'notifications' %}" class="btn btn-ghost btn-circle relative" id="notification-btn">
                                         <i class="fas fa-bell text-2xl text-white"></i>
+
+                                        <!-- Notification Counter Badge -->
+                                        {% if unread_notifications_count > 0 %}
+                                            <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                                {{ unread_notifications_count }}
+                                            </span>
+                                        {% endif %}
                                     </a>
+
 
                                     <!-- Profile Section -->
                                     <span class="text-white mr-2">Welcome, {{ user.username }}</span>
