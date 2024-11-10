@@ -2,6 +2,20 @@
 
 {% block content %}
 <div class="p-4">
+    <form method="get" class="mb-4 flex gap-4">
+        <div>
+            <input type="text" name="search_name" class="input input-bordered" placeholder="Filter by Service Name" value="{{ request.GET.search_name }}">
+        </div>
+        <div>
+            <select name="filter_status" class="select select-bordered">
+                <option value="">Select Status</option>
+                <option value="bookings_to_approve" {% if request.GET.filter_status == "bookings_to_approve" %}selected{% endif %}>Bookings to Approve</option>
+                <option value="bookings_in_progress" {% if request.GET.filter_status == "bookings_in_progress" %}selected{% endif %}>Bookings in Progress</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary text-white">Apply Filters</button>
+    </form>
+
     <!-- Add New Service Button -->
     <div class="flex justify-start mb-4">
         <label for="add-service-modal" class="btn btn-primary text-white">Add New Service</label>
