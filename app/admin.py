@@ -10,6 +10,7 @@ admin.site.register(Review)
 admin.site.register(Chat)
 admin.site.register(Message)
 admin.site.register(Provider)
+admin.site.register(Notification)
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):

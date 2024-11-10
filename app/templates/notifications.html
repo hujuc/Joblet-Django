@@ -6,10 +6,23 @@
     <h1 class="text-2xl font-bold mb-4">Notifications</h1>
 
     {% for notification in notifications %}
-        <div class="card bg-base-100 shadow-md mb-4">
+        <div class="card shadow-md mb-4 {% if notification.read %}bg-gray-100{% else %}bg-blue-100{% endif %}">
             <div class="card-body">
-                <p>{{ notification.message }}</p>
-                <p>{{ notification.timestamp }}</p>
+                <p class="{% if not notification.read %}font-bold{% endif %}">
+                    {{ notification.message }}
+                    {% if notification.count > 1 %}
+                        ({{ notification.count }})
+                    {% endif %}
+                </p>
+                <p>{{ notification.latest_created_at }}</p>
+
+                <!-- Button to mark notification as read -->
+                {% if not notification.read %}
+                    <form action="{% url 'mark_notification_as_read' notification.representative_id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="text-primary font-bold"><u>Mark as Read</u></button>
+                    </form>
+                {% endif %}
             </div>
         </div>
     {% empty %}

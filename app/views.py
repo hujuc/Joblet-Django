@@ -24,6 +24,9 @@ def pendingservices(request):
     services_pending = Service.objects.filter(approval='pending approval')
     return render(request, 'pendingservices.html', {'services_pending': services_pending})
 
+# import logging
+# logger = logging.getLogger(__name__)
+
 def approve_service(request, service_id):
     if not request.user.is_authenticated or not request.user.is_superuser:
         return HttpResponseForbidden("You are not authorized to view this page.")
@@ -31,7 +34,15 @@ def approve_service(request, service_id):
         service = get_object_or_404(Service, id=service_id)
         service.approval = 'approved'
         service.save()
+
+        notification = Notification.objects.create(
+            recipient=service.provider.profile,
+            message=f"Your service '{service.title}' has been approved by an administrator and is now visible to customers."
+        )
+        # logger.debug(f"Notification created: {notification}")
+
         return redirect('pendingservices')
+
 
 def reject_service(request, service_id):
     if not request.user.is_authenticated or not request.user.is_superuser:
@@ -40,6 +51,12 @@ def reject_service(request, service_id):
         service = get_object_or_404(Service, id=service_id)
         service.approval = 'not approved'
         service.save()
+
+        Notification.objects.create(
+            recipient=service.provider.profile,
+            message=f"Your service '{service.title}' has been rejected by an administrator."
+        )
+
         return redirect('pendingservices')
 
 def users(request):
@@ -394,6 +411,12 @@ def profile(request, user_id):
                 review.provider = provider
                 review.reviewer = request.user.profile
                 review.save()
+
+                Notification.objects.create(
+                    recipient=user_profile.provider.profile,
+                    message=f"You have received a new review from {request.user.username} for the service '{review.provider.services.first().title}'."
+                )
+
                 return redirect('profile', user_id=user_id)
 
         elif 'add_balance' in request.POST:  # Add Balance Form
@@ -444,6 +467,12 @@ def chat_view(request, booking_id):
                 else booking.customer
             )
             message.save()
+
+            Notification.objects.create(
+                recipient=message.recipient,
+                message=f"{message.sender.user.username} sent a new message in the chat for the service '{booking.service.title}'."
+            )
+
             messages.success(request, "Message sent successfully.")
             return redirect('chat_view', booking_id=booking.id)
     else:
@@ -527,7 +556,7 @@ def book_service(request, service_id):
             # Notify the provider
             Notification.objects.create(
                 recipient=service.provider.profile,
-                message=f"{request.user.username} has booked your service '{service.title}'.",
+                message=f"New booking for the service '{service.title}'.",
                 booking=booking,
                 action_required=True
             )
@@ -562,23 +591,53 @@ def update_booking_status(request, booking_id):
         provider_profile.wallet += booking.service.price
         provider_profile.save()
 
+        Notification.objects.create(
+            recipient=provider_profile,
+            message=f"The booking for the service '{booking.service.title}' has been marked as completed by the customer."
+        )
+
         messages.success(request, "Booking status updated to 'completed' and amount deposited in wallet.")
     else:
         messages.info(request, "This booking has already been marked as completed.")
 
     return redirect('profile', user_id=request.user.id)
 
+from django.db.models import Count, Max, Subquery, OuterRef
+
 @login_required
 def notifications(request):
     user_profile = Profile.objects.get(user=request.user)
-    notifications = user_profile.notifications.order_by('-created_at')
+
+    # Get the ID of a representative notification in each group (for example, the most recent one)
+    representative_ids = Notification.objects.filter(
+        message=OuterRef('message'),
+        read=OuterRef('read'),
+        recipient=user_profile
+    ).values('id')[:1]
+
+    # Group notifications by message and read status, and count them
+    notifications = (
+        user_profile.notifications
+        .values('message', 'read')  # Group by message and read status
+        .annotate(
+            count=Count('id'),
+            latest_created_at=Max('created_at'),
+            representative_id=Subquery(representative_ids)  # Get a single ID from each group
+        )
+        .order_by('read', '-latest_created_at')  # Order unread notifications first
+    )
+
     return render(request, 'notifications.html', {'notifications': notifications})
+
+
+
 
 @login_required
 def mark_notification_as_read(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
     notification.read = True
     notification.save()
+    messages.success(request, "Notification marked as read.")
     return redirect('notifications')
 
 @login_required
@@ -602,6 +661,11 @@ def accept_booking(request, booking_id):
     booking.status = 'in_progress'
     booking.save()  # Save the changes
 
+    Notification.objects.create(
+        recipient=booking.customer,
+        message=f"Your request for the service '{booking.service.title}' has been accepted by the provider and is now in progress."
+    )
+
     # Confirmation message
     messages.success(request, "Booking accepted successfully.")
     return redirect('pending_bookings', service_id=booking.service.id)
@@ -611,6 +675,12 @@ def reject_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, service__provider__profile__user=request.user)
     booking.status = 'cancelled'
     booking.save()
+
+    Notification.objects.create(
+        recipient=booking.customer,
+        message=f"Your request for the service '{booking.service.title}' was rejected by the provider."
+    )
+
     messages.success(request, "Booking rejected successfully.")
     return redirect('pending_bookings', service_id=booking.service.id)
 
