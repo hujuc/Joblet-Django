@@ -2,8 +2,8 @@
 
 {% block content %}
     <div class="p-6">
-        <!-- Back to Services -->
-        <a href="{% url 'services' %}" class="btn btn-primary text-white mb-6">Back to Services</a>
+        <!-- Back to Previous Page -->
+        <a href="{{ referer_url }}" class="btn btn-primary text-white mb-6">Back to Previous Page</a>
 
         <!-- Main Container -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
