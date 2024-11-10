@@ -1,16 +1,19 @@
 import logging
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q, Avg
+from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_http_methods
+from django.utils import timezone
 
 from .forms import CustomUserCreationForm, LoginForm, ProfileForm, ReviewForm, CategoryForm, AddBalanceForm, \
     ProviderForm, MessageForm, BookingForm
-from .models import Profile, Provider, Service, Category, Message, Booking, Chat
+from .models import Profile, Provider, Service, Category, Message, Booking, Chat, Notification
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +60,24 @@ def myservices(request):
     provider = get_object_or_404(Provider, profile=user_profile)
     user_services = Service.objects.filter(provider=provider)
     categories = Category.objects.all()  # Fetch categories here
-    return render(request, 'myservices.html', {'services': user_services, 'categories': categories})
+
+    # Contagem de bookings para cada serviço
+    services_with_counts = []
+    for service in user_services:
+        bookings_to_approve_count = Booking.objects.filter(service=service, accepted_at__isnull=True).count()
+        bookings_in_progress_count = Booking.objects.filter(service=service, status='pending',
+                                                            accepted_at__isnull=False).count()
+
+        services_with_counts.append({
+            'service': service,
+            'bookings_to_approve_count': bookings_to_approve_count,
+            'bookings_in_progress_count': bookings_in_progress_count
+        })
+
+    return render(request, 'myservices.html', {
+        'services_with_counts': services_with_counts,
+        'categories': categories
+    })
 
 
 def categories(request):
@@ -98,8 +118,6 @@ def edit_service(request, service_id):
         return redirect('myservices')
 
     return render(request, 'edit_service.html', {'service': service, 'categories': categories})
-
-from datetime import timedelta
 
 
 @login_required
@@ -143,8 +161,6 @@ def delete_service(request, service_id):
     service = Service.objects.get(pk=service_id)
     service.delete()
     return redirect('myservices')
-
-from django.http import JsonResponse, HttpResponseForbidden
 
 
 def get_service_data(request, service_id):
@@ -305,7 +321,7 @@ def profile(request, user_id):
     review_form = ReviewForm()
     add_balance_form = AddBalanceForm()
 
-    booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-scheduled_time')
+    booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-created_at')
 
     # Get the provider instance if it exists
     provider = user_profile.provider if hasattr(user_profile, 'provider') else None
@@ -471,15 +487,24 @@ def book_service(request, service_id):
     if request.method == "POST":
         form = BookingForm(request.POST)
         if form.is_valid():
+            # Create booking
             booking = form.save(commit=False)
             booking.service = service
             booking.customer = request.user.profile  # Assuming Profile is linked to User
             booking.save()
-            print(f"Booking created: {booking}")  # Debugging output
-            return redirect('service_detail', service_id=service.id)
+
+            # Notify the provider
+            Notification.objects.create(
+                recipient=service.provider.profile,
+                message=f"{request.user.username} has booked your service '{service.title}'.",
+                booking=booking,
+                action_required=True
+            )
+            messages.success(request, "Booking created successfully!")
+            return redirect('service_detail', service_id=service_id)
         else:
-            print("Form is not valid")  # Debugging output
-            print(form.errors)  # Show form validation errors
+            messages.error(request, "Invalid booking details.")
+            return redirect('service_detail', service_id=service_id)
 
     else:
         form = BookingForm()
@@ -495,7 +520,7 @@ def update_booking_status(request, booking_id):
         messages.error(request, "Você não tem permissão para alterar o status desta reserva.")
         return redirect('profile', user_id=request.user.id)
 
-    if not booking.approved_by_provider:
+    if not booking.accepted_at:
         messages.warning(request, "Esta reserva ainda não foi aprovada pelo provedor.")
         return redirect('profile', user_id=request.user.id)
 
@@ -512,6 +537,52 @@ def update_booking_status(request, booking_id):
         messages.info(request, "Esta reserva já foi concluída.")
 
     return redirect('profile', user_id=request.user.id)
+
+@login_required
+def notifications(request):
+    user_profile = Profile.objects.get(user=request.user)
+    notifications = user_profile.notifications.order_by('-created_at')
+    return render(request, 'notifications.html', {'notifications': notifications})
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
+    notification.read = True
+    notification.save()
+    return redirect('notifications')
+
+@login_required
+def pending_bookings(request, service_id):
+    service = get_object_or_404(Service, id=service_id, provider__profile__user=request.user)
+    pending_bookings = Booking.objects.filter(service=service, accepted_at__isnull=True)
+    return render(request, 'pending_bookings.html', {'bookings': pending_bookings, 'service': service})
+
+@login_required
+def in_progress_bookings(request, service_id):
+    service = get_object_or_404(Service, id=service_id, provider__profile__user=request.user)
+    in_progress_bookings = Booking.objects.filter(service=service, status='pending', accepted_at__isnull=False)
+    return render(request, 'in_progress_bookings.html', {'bookings': in_progress_bookings, 'service': service})
+
+@login_required
+def accept_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id, service__provider__profile__user=request.user)
+
+    # Update the booking status and approval flag
+    booking.accepted_at = timezone.now()
+    booking.status = 'pending'  # Ensure the status is set to pending
+    booking.save()  # Save the changes
+
+    # Confirmation message
+    messages.success(request, "Booking aprovado com sucesso.")
+    return redirect('pending_bookings', service_id=booking.service.id)
+
+@login_required
+def reject_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id, service__provider__profile__user=request.user)
+    booking.status = 'cancelled'
+    booking.save()
+    messages.success(request, "Booking rejeitado com sucesso.")
+    return redirect('pending_bookings', service_id=booking.service.id)
 
 def user_chats(request):
     profile = request.user.profile

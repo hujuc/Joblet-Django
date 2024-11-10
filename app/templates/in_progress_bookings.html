@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="p-4">
+    <a href="{% url 'myservices' %}" class="btn btn-sm btn-outline mb-4">← Back to My Services</a>
+    <h1 class="text-2xl font-bold mb-4">Bookings In Progress for {{ service.title }}</h1>
+    {% for booking in bookings %}
+        <div class="card bg-base-100 shadow-md mb-4">
+            <div class="card-body">
+                <p>Customer: {{ booking.customer.user.username }}</p>
+                <p>Scheduled Date: {{ booking.scheduled_time }}</p>
+                <p>Details: {{ booking.details }}</p>
+                <p>Status: {{ booking.status }}</p>
+                <button class="btn btn-sm btn-primary text-white mt-4">Chat</button>
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-gray-500">No bookings in progress found for this service.</p>
+    {% endfor %}
+</div>
+{% endblock %}

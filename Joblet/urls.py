@@ -61,6 +61,16 @@ urlpatterns = [
     path('booking/<int:booking_id>/chat/', views.chat_view, name='chat_view'),
     path('chats/', views.user_chats, name='user_chats'),
     path('message/<int:recipient_id>/', views.send_message, name='send_message'),
+
+    # Notifications
+    path('notifications/', views.notifications, name='notifications'),
+    path('notifications/read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
+
+    # Bookings
+    path('myservices/<int:service_id>/pending_bookings/', views.pending_bookings, name='pending_bookings'),
+    path('myservices/<int:service_id>/in_progress_bookings/', views.in_progress_bookings, name='in_progress_bookings'),
+    path('booking/<int:booking_id>/accept/', views.accept_booking, name='accept_booking'),
+    path('booking/<int:booking_id>/reject/', views.reject_booking, name='reject_booking'),
 ]
 
 if settings.DEBUG:
