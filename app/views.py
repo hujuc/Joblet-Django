@@ -24,6 +24,7 @@ def pendingservices(request):
     services_pending = Service.objects.filter(approval='pending approval')
     return render(request, 'pendingservices.html', {'services_pending': services_pending})
 
+
 def approve_service(request, service_id):
     if not request.user.is_authenticated or not request.user.is_superuser:
         return HttpResponseForbidden("You are not authorized to view this page.")
@@ -31,7 +32,14 @@ def approve_service(request, service_id):
         service = get_object_or_404(Service, id=service_id)
         service.approval = 'approved'
         service.save()
+
+        Notification.objects.create(
+            recipient=service.provider.profile,
+            message=f"Your service '{service.title}' has been approved by an administrator and is now visible to customers."
+        )
+
         return redirect('pendingservices')
+
 
 def reject_service(request, service_id):
     if not request.user.is_authenticated or not request.user.is_superuser:
@@ -40,6 +48,12 @@ def reject_service(request, service_id):
         service = get_object_or_404(Service, id=service_id)
         service.approval = 'not approved'
         service.save()
+
+        Notification.objects.create(
+            recipient=service.provider.profile,
+            message=f"Your service '{service.title}' has been rejected by an administrator."
+        )
+
         return redirect('pendingservices')
 
 def users(request):
@@ -351,6 +365,12 @@ def profile(request, user_id):
                 review.provider = provider
                 review.reviewer = request.user.profile
                 review.save()
+
+                Notification.objects.create(
+                    recipient=user_profile.provider.profile,
+                    message=f"You have received a new review from {request.user.username} for the service '{review.provider.services.first().title}'."
+                )
+
                 return redirect('profile', user_id=user_id)
 
         elif 'add_balance' in request.POST:  # Add Balance Form
@@ -401,6 +421,12 @@ def chat_view(request, booking_id):
                 else booking.customer
             )
             message.save()
+
+            Notification.objects.create(
+                recipient=message.recipient,
+                message=f"{message.sender.user.username} sent a new message in the chat for the service '{booking.service.title}'."
+            )
+
             messages.success(request, "Message sent successfully.")
             return redirect('chat_view', booking_id=booking.id)
     else:
@@ -519,6 +545,11 @@ def update_booking_status(request, booking_id):
         provider_profile.wallet += booking.service.price
         provider_profile.save()
 
+        Notification.objects.create(
+            recipient=provider_profile,
+            message=f"The booking for the service '{booking.service.title}' has been marked as completed by the customer."
+        )
+
         messages.success(request, "Booking status updated to 'completed' and amount deposited in wallet.")
     else:
         messages.info(request, "This booking has already been marked as completed.")
@@ -559,6 +590,11 @@ def accept_booking(request, booking_id):
     booking.status = 'in_progress'
     booking.save()  # Save the changes
 
+    Notification.objects.create(
+        recipient=booking.customer,
+        message=f"Your request for the service '{booking.service.title}' has been accepted by the provider and is now in progress."
+    )
+
     # Confirmation message
     messages.success(request, "Booking accepted successfully.")
     return redirect('pending_bookings', service_id=booking.service.id)
@@ -568,6 +604,12 @@ def reject_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, service__provider__profile__user=request.user)
     booking.status = 'cancelled'
     booking.save()
+
+    Notification.objects.create(
+        recipient=booking.customer,
+        message=f"Your request for the service '{booking.service.title}' was rejected by the provider."
+    )
+
     messages.success(request, "Booking rejected successfully.")
     return redirect('pending_bookings', service_id=booking.service.id)
 
