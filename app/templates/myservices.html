@@ -43,9 +43,13 @@
 
                     <!-- Service Image -->
                     {% if service.image %}
-                        <figure>
+                        <figure class="w-full h-52 overflow-hidden">
                             <img src="{{ service.image.url }}" alt="{{ service.title }}" />
                         </figure>
+                    {% else %}
+                        <div class="w-full h-52 bg-gray-200 flex items-center justify-center">
+                            <span class="text-gray-500">No Image</span>
+                        </div>
                     {% endif %}
 
                     <!-- Service Details -->

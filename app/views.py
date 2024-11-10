@@ -64,9 +64,8 @@ def myservices(request):
     # Contagem de bookings para cada serviço
     services_with_counts = []
     for service in user_services:
-        bookings_to_approve_count = Booking.objects.filter(service=service, accepted_at__isnull=True).count()
-        bookings_in_progress_count = Booking.objects.filter(service=service, status='pending',
-                                                            accepted_at__isnull=False).count()
+        bookings_to_approve_count = Booking.objects.filter(service=service, status='pending', accepted_at__isnull=True).count()
+        bookings_in_progress_count = Booking.objects.filter(service=service, status='in_progress', accepted_at__isnull=False).count()
 
         services_with_counts.append({
             'service': service,
