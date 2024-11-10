@@ -305,9 +305,6 @@ def services(request):
     }
     return render(request, 'services.html', context)
 
-from django.urls import reverse
-
-
 def service_detail(request, service_id):
     service = get_object_or_404(Service, id=service_id, is_active=True, approval='approved')
 
@@ -315,20 +312,12 @@ def service_detail(request, service_id):
     avg_rating = service.provider.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
     booking_form = BookingForm()
 
-    # Armazenar a URL de referência na sessão
-    if 'HTTP_REFERER' in request.META:
-        request.session['referer_url'] = request.META['HTTP_REFERER']
-    elif 'referer_url' not in request.session:
-        request.session['referer_url'] = reverse('services')  # URL padrão caso não haja referência
-
     context = {
         'service': service,
         'avg_rating': avg_rating,
         'booking_form': booking_form,
-        'referer_url': request.session['referer_url'],
     }
     return render(request, 'service_detail.html', context)
-
 
 def booking(request):
     return render(request, 'booking.html')
