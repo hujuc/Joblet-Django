@@ -261,6 +261,54 @@
         {% endif %}
 
 
+        {% if user.is_authenticated and user == profile.user and booking_history %}
+                <div class="mt-6">
+                    <h2 class="text-2xl font-semibold">Booking History</h2>
+                    <div class="space-y-4 mt-4">
+                        {% for booking in booking_history %}
+                            <div class="bg-base-200 rounded-lg p-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h3 class="font-semibold">{{ booking.service.title }}</h3>
+                                        <p class="text-sm text-gray-500">Scheduled time: {{ booking.scheduled_time|date:"d M Y, H:i" }}</p>
+                                        <p class="text-sm text-gray-500">Details: {{ booking.details }}</p>
+                                        <p class="text-sm text-gray-500">Status: {{ booking.get_status_display }}</p>
+                                        <p class="text-sm text-gray-500">
+                                            {% if booking.accepted_at %}
+                                                Approved: {{ booking.accepted_at|date:"d M Y, H:i" }}
+                                            {% else %}
+                                                Approved: Not yet.
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-primary font-semibold">${{ booking.service.price|floatformat:2 }}</span>
+
+                                        {% if not booking.accepted_at and user == booking.service.provider.profile.user %}
+                                            <!-- Botão para o provedor aprovar a reserva -->
+                                            <form method="POST" action="{% url 'approve_booking' booking.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success">Aprovar Reserva</button>
+                                            </form>
+                                        {% endif %}
+
+                                        {% if booking.status != 'completed' and booking.accepted_at and user == booking.customer.user and booking.status != 'cancelled' %}
+                                            <!-- Botão para o cliente marcar como concluído -->
+                                            <form method="POST" action="{% url 'update_booking_status' booking.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success">Marcar como Concluído</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+            {% endif %}
+
+
         <!-- Reviews Section -->
         {% if is_provider %}
             <div class="form-control mb-8 mt-6 p-6 bg-base-200 rounded-lg">
@@ -459,53 +507,5 @@
                 </form>
             </div>
         </div>
-
-        {% if user.is_authenticated and user == profile.user %}
-            <div class="mt-6">
-                <h2 class="text-2xl font-semibold">Booking History</h2>
-                <div class="space-y-4 mt-4">
-                    {% for booking in booking_history %}
-                        <div class="bg-base-200 rounded-lg p-4">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h3 class="font-semibold">{{ booking.service.title }}</h3>
-                                    <p class="text-sm text-gray-500">Scheduled time: {{ booking.scheduled_time|date:"d M Y, H:i" }}</p>
-                                    <p class="text-sm text-gray-500">Details: {{ booking.details }}</p>
-                                    <p class="text-sm text-gray-500">Status: {{ booking.get_status_display }}</p>
-                                    <p class="text-sm text-gray-500">
-                                        {% if booking.accepted_at %}
-                                            Approved: {{ booking.accepted_at|date:"d M Y, H:i" }}
-                                        {% else %}
-                                            Approved: Not yet.
-                                        {% endif %}
-                                    </p>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <span class="text-primary font-semibold">${{ booking.service.price|floatformat:2 }}</span>
-
-                                    {% if not booking.accepted_at and user == booking.service.provider.profile.user %}
-                                        <!-- Botão para o provedor aprovar a reserva -->
-                                        <form method="POST" action="{% url 'approve_booking' booking.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-success">Aprovar Reserva</button>
-                                        </form>
-                                    {% endif %}
-
-                                    {% if booking.status != 'completed' and booking.accepted_at and user == booking.customer.user and booking.status != 'cancelled' %}
-                                        <!-- Botão para o cliente marcar como concluído -->
-                                        <form method="POST" action="{% url 'update_booking_status' booking.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-success">Marcar como Concluído</button>
-                                        </form>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-
-                </div>
-            </div>
-        {% endif %}
-
     </div>
 {% endblock %}

@@ -38,7 +38,7 @@
                     <label for="sort" class="label font-semibold">Sort by</label>
                     <select name="sort" id="sort" class="select select-bordered">
                         <option value="0" {% if sort_option == "0" %}selected{% endif %}>Most Recent</option>
-                        <option value="1" {% if sort_option == "1" %}selected{% endif %}>Most Popular</option>
+{#                        <option value="1" {% if sort_option == "1" %}selected{% endif %}>Most Popular</option>#}
                         <option value="2" {% if sort_option == "2" %}selected{% endif %}>Price: Low to High</option>
                         <option value="3" {% if sort_option == "3" %}selected{% endif %}>Price: High to Low</option>
                     </select>
@@ -72,9 +72,9 @@
                                     <div class="flex items-center gap-2">
                                         {% if service.provider.profile.avatar %}
                                             <img
-                                                    src="{{ service.provider.profile.avatar.url }}"
-                                                    alt="{{ service.provider.profile.user.username }}"
-                                                    class="w-8 h-8 rounded-full object-cover"
+                                                src="{{ service.provider.profile.avatar.url }}"
+                                                alt="{{ service.provider.profile.user.username }}"
+                                                class="w-8 h-8 rounded-full object-cover"
                                             />
                                         {% else %}
                                             <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
