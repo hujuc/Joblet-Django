@@ -608,28 +608,31 @@ from django.db.models import Count, Max, Subquery, OuterRef
 def notifications(request):
     user_profile = Profile.objects.get(user=request.user)
 
-    # Get the ID of a representative notification in each group (for example, the most recent one)
+    # Count unread notifications
+    unread_notifications_count = user_profile.notifications.filter(read=False).count()
+
+    # Get representative notifications with a count
     representative_ids = Notification.objects.filter(
         message=OuterRef('message'),
         read=OuterRef('read'),
         recipient=user_profile
     ).values('id')[:1]
 
-    # Group notifications by message and read status, and count them
     notifications = (
         user_profile.notifications
-        .values('message', 'read')  # Group by message and read status
+        .values('message', 'read')
         .annotate(
             count=Count('id'),
             latest_created_at=Max('created_at'),
-            representative_id=Subquery(representative_ids)  # Get a single ID from each group
+            representative_id=Subquery(representative_ids)
         )
-        .order_by('read', '-latest_created_at')  # Order unread notifications first
+        .order_by('read', '-latest_created_at')
     )
 
-    return render(request, 'notifications.html', {'notifications': notifications})
-
-
+    return render(request, 'notifications.html', {
+        'notifications': notifications,
+        'unread_notifications_count': unread_notifications_count
+    })
 
 
 @login_required
