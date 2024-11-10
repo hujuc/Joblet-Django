@@ -21,7 +21,7 @@
                     <!-- 2nd Place -->
                     {% if providers|length > 1 %}
                         <div class="text-center">
-                            <a href="/profile/{{ providers.1.profile.user.id }}" class="inline-block">
+                            <a href="{% url 'profile' providers.1.profile.user.username %}">
                                 <div class="avatar placeholder">
                                     <div class="bg-neutral text-white w-24 h-24 rounded-full flex items-center justify-center">
                                         {% if providers.1.profile.avatar %}
@@ -42,7 +42,7 @@
 
                     <!-- 1st Place -->
                     <div class="text-center">
-                        <a href="/profile/{{ providers.0.profile.user.id }}" class="inline-block">
+                        <a href="{% url 'profile' providers.0.profile.user.username %}" class="inline-block">
                             <div class="avatar placeholder">
                                 <div class="bg-neutral text-white w-24 h-24 rounded-full flex items-center justify-center">
                                     {% if providers.0.profile.avatar %}
@@ -63,7 +63,7 @@
                     <!-- 3rd Place -->
                     {% if providers|length > 2 %}
                         <div class="text-center">
-                            <a href="/profile/{{ providers.2.profile.user.id }}" class="inline-block">
+                            <a href="{% url 'profile' providers.2.profile.user.username %}" class="inline-block">
                                 <div class="avatar placeholder">
                                     <div class="bg-neutral text-white w-24 h-24 rounded-full flex items-center justify-center">
                                         {% if providers.2.profile.avatar %}

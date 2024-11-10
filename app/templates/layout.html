@@ -88,7 +88,7 @@
 
                                         <!-- Profile Dropdown -->
                                         <ul tabindex="0" id="profile-menu" class="menu menu-sm dropdown-content bg-white rounded-box z-[1] mt-3 w-52 p-2 shadow border-4 border-primary hidden">
-                                            <li><a href="{% url 'profile' user.id %}" class="justify-between">Profile</a></li>
+                                            <li><a href="{% url 'profile' user.username %}" class="justify-between">Profile</a></li>
                                             {% if user.username != 'admin' and not user.is_provider %}
                                                 <li><a href="{% url 'myorders' %}" class="justify-between">My Orders</a></li>
                                             {% endif %}

@@ -309,7 +309,7 @@
                     {% for review in reviews %}
                         <div class="bg-white p-4 rounded-lg shadow-md">
                             <div class="flex items-center justify-between mb-2">
-                                <a class="flex items-center gap-2" href="{% url 'profile' review.reviewer.user.id %}">
+                                <a class="flex items-center gap-2" href="{% url 'profile' review.reviewer.user.username %}">
                                     {% if review.reviewer.user.profile.avatar %}
                                         <img src="{{ review.reviewer.user.profile.avatar.url }}" alt="{{ review.reviewer.user.username }}" class="w-8 h-8 rounded-full">
                                     {% else %}

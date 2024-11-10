@@ -369,9 +369,9 @@ def booking(request):
 def about(request):
     return render(request, 'about.html')
 
-def profile(request, user_id):
+def profile(request, username):
     # Get the user's profile
-    user_profile = get_object_or_404(Profile, user_id=user_id)
+    user_profile = get_object_or_404(Profile, user__username=username)
 
     # Initialize forms
     profile_form = ProfileForm(instance=user_profile)
@@ -396,13 +396,13 @@ def profile(request, user_id):
             profile_form = ProfileForm(request.POST, request.FILES, instance=user_profile)
             if profile_form.is_valid():
                 profile_form.save()
-                return redirect('profile', user_id=user_id)
+                return redirect('profile', username=username)
 
         elif 'update_provider' in request.POST and is_provider:  # Pr
             provider_form = ProviderForm(request.POST, request.FILES, instance=user_profile.provider)
             if provider_form.is_valid():
                 provider_form.save()
-                return redirect('profile', user_id=user_id)
+                return redirect('profile', username=username)
 
         elif 'add_review' in request.POST and is_provider:  # Review Form
             review_form = ReviewForm(request.POST)
@@ -417,7 +417,7 @@ def profile(request, user_id):
                     message=f"You have received a new review from {request.user.username} for the service '{review.provider.services.first().title}'."
                 )
 
-                return redirect('profile', user_id=user_id)
+                return redirect('profile', username=username)
 
         elif 'add_balance' in request.POST:  # Add Balance Form
             add_balance_form = AddBalanceForm(request.POST)
@@ -425,7 +425,7 @@ def profile(request, user_id):
                 amount = add_balance_form.cleaned_data['amount']
                 user_profile.wallet += amount
                 user_profile.save()
-                return redirect('profile', user_id=user_id)
+                return redirect('profile', username=username)
 
     # Pass context to the template
     context = {

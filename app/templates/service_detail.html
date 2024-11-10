@@ -38,7 +38,7 @@
 
                 <!-- Provider Profile -->
                 <div class="flex items-center mt-10">
-                    <a href="{% url 'profile' service.provider.profile.user.id %}" class="flex items-center gap-4">
+                    <a href="{% url 'profile' service.provider.profile.user.username %}" class="flex items-center gap-4">
                         <div class="avatar">
                             <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
                                 {% if service.provider.profile.avatar %}

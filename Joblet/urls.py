@@ -30,7 +30,7 @@ urlpatterns = [
     path('about/', views.about, name='about'),
 
     # User
-    path('profile/<int:user_id>/', views.profile, name='profile'),
+    path('profile/<str:username>/', views.profile, name='profile'),
     path('edit_profile/<int:user_id>/', views.edit_profile, name='edit_profile'),
     path('services/', views.services, name='services'),
     path('service/<int:service_id>/', views.service_detail, name='service_detail'),
