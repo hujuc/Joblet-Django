@@ -48,11 +48,11 @@ urlpatterns = [
     path('edit_profile/<int:user_id>/', views.edit_profile, name='edit_profile'),
     path('update-booking-status/<int:booking_id>/', views.update_booking_status, name='update_booking_status'),
     path('notifications/', views.notifications, name='notifications'),
-    path('notifications/approve/<int:notification_id>/', views.approve_booking, name='approve_booking'),
-    path('notifications/reject/<int:notification_id>/', views.reject_booking, name='reject_booking'),
     path('notifications/read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
-    # path('chat/<int:service_id>/', views.chat, name='chat'),path('book/<int:service_id>/', views.book_service, name='book_service'),
-
+    path('myservices/<int:service_id>/pending_bookings/', views.pending_bookings, name='pending_bookings'),
+    path('myservices/<int:service_id>/in_progress_bookings/', views.in_progress_bookings, name='in_progress_bookings'),
+    path('booking/<int:booking_id>/accept/', views.accept_booking, name='accept_booking'),
+    path('booking/<int:booking_id>/reject/', views.reject_booking, name='reject_booking'),
 ]
 
 if settings.DEBUG:

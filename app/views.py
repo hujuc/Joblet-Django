@@ -55,12 +55,30 @@ def ban_user(request, user_id):
         user.delete()  # Remove o usuário e, por cascade, o Profile e o Provider (se existir)
         return redirect('users')
 
+
 def myservices(request):
     user_profile = get_object_or_404(Profile, user=request.user)
     provider = get_object_or_404(Provider, profile=user_profile)
     user_services = Service.objects.filter(provider=provider)
     categories = Category.objects.all()  # Fetch categories here
-    return render(request, 'myservices.html', {'services': user_services, 'categories': categories})
+
+    # Contagem de bookings para cada serviço
+    services_with_counts = []
+    for service in user_services:
+        bookings_to_approve_count = Booking.objects.filter(service=service, accepted_at__isnull=True).count()
+        bookings_in_progress_count = Booking.objects.filter(service=service, status='pending',
+                                                            accepted_at__isnull=False).count()
+
+        services_with_counts.append({
+            'service': service,
+            'bookings_to_approve_count': bookings_to_approve_count,
+            'bookings_in_progress_count': bookings_in_progress_count
+        })
+
+    return render(request, 'myservices.html', {
+        'services_with_counts': services_with_counts,
+        'categories': categories
+    })
 
 
 def categories(request):
@@ -103,6 +121,7 @@ def edit_service(request, service_id):
     return render(request, 'edit_service.html', {'service': service, 'categories': categories})
 
 from datetime import timedelta
+from django.utils import timezone
 
 
 @login_required
@@ -291,7 +310,7 @@ def profile(request, user_id):
     review_form = ReviewForm()
     add_balance_form = AddBalanceForm()
 
-    booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-date')
+    booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-created_at')
 
     # Get the provider instance if it exists
     provider = user_profile.provider if hasattr(user_profile, 'provider') else None
@@ -401,7 +420,7 @@ def update_booking_status(request, booking_id):
         messages.error(request, "Você não tem permissão para alterar o status desta reserva.")
         return redirect('profile', user_id=request.user.id)
 
-    if not booking.approved_by_provider:
+    if not booking.accepted_at:
         messages.warning(request, "Esta reserva ainda não foi aprovada pelo provedor.")
         return redirect('profile', user_id=request.user.id)
 
@@ -431,45 +450,34 @@ def mark_notification_as_read(request, notification_id):
     notification.save()
     return redirect('notifications')
 
+@login_required
+def pending_bookings(request, service_id):
+    service = get_object_or_404(Service, id=service_id, provider__profile__user=request.user)
+    pending_bookings = Booking.objects.filter(service=service, accepted_at__isnull=True)
+    return render(request, 'pending_bookings.html', {'bookings': pending_bookings, 'service': service})
 
 @login_required
-def approve_booking(request, notification_id):
-    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
-
-    if not notification.booking:
-        messages.error(request, "Reserva não encontrada para esta notificação.")
-        return redirect('notifications')
-
-    # Aprova a reserva associada
-    booking = notification.booking
-    booking.approved_by_provider = True
-    booking.save()
-
-    # Marca a notificação como lida
-    notification.read = True
-    notification.action_required = False
-    notification.save()
-
-    messages.success(request, "Reserva aprovada com sucesso!")
-    return redirect('notifications')
+def in_progress_bookings(request, service_id):
+    service = get_object_or_404(Service, id=service_id, provider__profile__user=request.user)
+    in_progress_bookings = Booking.objects.filter(service=service, status='pending', accepted_at__isnull=False)
+    return render(request, 'in_progress_bookings.html', {'bookings': in_progress_bookings, 'service': service})
 
 @login_required
-def reject_booking(request, notification_id):
-    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user.profile)
+def accept_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id, service__provider__profile__user=request.user)
 
-    if not notification.booking:
-        messages.error(request, "Reserva não encontrada para esta notificação.")
-        return redirect('notifications')
+    # Update the booking status and approval flag
+    booking.accepted_at = timezone.now()
+    booking.status = 'pending'  # Ensure the status is set to pending
+    booking.save()  # Save the changes
 
-    # Rejeita a reserva associada
-    booking = notification.booking
+    # Confirmation message
+    messages.success(request, "Booking aprovado com sucesso.")
+    return redirect('pending_bookings', service_id=booking.service.id)
+@login_required
+def reject_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id, service__provider__profile__user=request.user)
     booking.status = 'cancelled'
     booking.save()
-
-    # Marca a notificação como lida
-    notification.read = True
-    notification.action_required = False
-    notification.save()
-
-    messages.success(request, "Reserva rejeitada com sucesso!")
-    return redirect('notifications')
+    messages.success(request, "Booking rejeitado com sucesso.")
+    return redirect('pending_bookings', service_id=booking.service.id)

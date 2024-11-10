@@ -52,7 +52,7 @@
             {% if services %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {% for service in services %}
-                        <a href="{% url 'service' service.id %}" class="group">
+                        <a href="{% url 'service_detail' service.id %}" class="group">
                             <div class="card bg-base-100 shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                                 {% if service.image %}
                                     <img
