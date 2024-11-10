@@ -217,8 +217,52 @@ def logout_view(request):
     messages.success(request, "You have logged out successfully!")
     return redirect('index')
 
+from django.db.models import Count
+
+def top_categories(limit=5):
+    """Retorna as categorias com mais vendas."""
+    return (
+        Category.objects.annotate(total_sales=Count('service__booking'))
+        .order_by('-total_sales')[:limit]
+    )
+
+def leaderboard(limit=5):
+    """Retorna os providers com mais vendas (independente do mês)."""
+    return (
+        Provider.objects.annotate(
+            total_sales=Count(
+                'services__booking',  # Relacionamento de Provider -> Service -> Booking
+                filter=Q(services__booking__status='completed')
+            )
+        )
+        .filter(total_sales__gt=0)  # Somente providers com vendas
+        .order_by('-total_sales')[:limit]
+    )
+
+from django.db.models import Sum
+from .models import Service, Review
+
 def home(request):
-    return render(request, 'index.html')
+    recent_bookings = Booking.objects.filter(
+        Q(status='completed') | Q(status='in_progress')
+    ).order_by('-created_at')[:5]
+    total_users = User.objects.count()
+    total_services = Service.objects.count()
+    total_reviews = Review.objects.count()
+    total_revenue = Service.objects.aggregate(Sum('price'))['price__sum'] or 0
+    categories = top_categories()
+    providers = leaderboard()
+
+    context = {
+        'recent_bookings': recent_bookings,
+        'categories': categories,
+        'providers': providers,
+        'total_users': total_users,
+        'total_services': total_services,
+        'total_reviews': total_reviews,
+        'total_revenue': total_revenue,
+    }
+    return render(request, 'index.html', context)
 
 def myorders(request):
     # Ensure the user is authenticated
