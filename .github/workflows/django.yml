@@ -25,6 +25,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    - name: Set Up .env File
+      run: |
+        echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .env
+        echo "DJANGO_ALLOWED_HOSTS=${{ secrets.DJANGO_ALLOWED_HOSTS }}" >> .env
+        echo "DJANGO_DEBUG=${{ secrets.DJANGO_DEBUG }}" >> .env
+
     - name: Run Tests
       run: |
         python manage.py test
