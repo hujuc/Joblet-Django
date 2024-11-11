@@ -100,7 +100,7 @@ def create_bookings():
 
     bookings = []
     for customer in customers:
-        for _ in range(random.randint(1, 5)):  # bookings per customer
+        for _ in range(random.randint(3, 6)):  # bookings per customer
             service = random.choice(services)
             bookings.append(Booking(
                 service=service,

@@ -65,7 +65,7 @@
                 <p class="text-sm">Status: <span class="badge badge-success">{{ booking.get_status_display }}</span></p>
 
                 <div class="flex justify-end mt-4">
-                    <a href="{% url 'chat_view' booking.id %}" class="btn btn-primary btn-sm text-white">Chat</a>
+                    <a href="#" class="btn btn-secondary btn-sm" disabled>Chat Unavailable</a>
                 </div>
             </div>
         {% empty %}
