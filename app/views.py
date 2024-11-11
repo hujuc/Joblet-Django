@@ -666,7 +666,11 @@ def mark_notification_as_read(request, notification_id):
     notification.read = True
     notification.save()
     messages.success(request, "Notification marked as read.")
-    return redirect('notifications')
+
+    # Redirect to the provided URL if it exists
+    redirect_url = request.POST.get('redirect', 'notifications')
+    return redirect(redirect_url)
+
 
 @login_required
 def pending_bookings(request, service_id):
