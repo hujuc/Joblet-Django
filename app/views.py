@@ -6,9 +6,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
-from django.db.models import Q, Avg
+from django.db.models import Q, Avg, OuterRef, Max, Subquery, Sum, Count
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from django.utils.timezone import now
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 
@@ -24,9 +26,6 @@ def pendingservices(request):
     services_pending = Service.objects.filter(approval='pending approval')
     return render(request, 'pendingservices.html', {'services_pending': services_pending})
 
-# import logging
-# logger = logging.getLogger(__name__)
-from django.urls import reverse
 
 def approve_service(request, service_id):
     if not request.user.is_authenticated or not request.user.is_superuser:
@@ -257,7 +256,6 @@ def logout_view(request):
     messages.success(request, "You have logged out successfully!")
     return redirect('index')
 
-from django.db.models import Count
 
 def top_categories(limit=5):
     """Retorna as categorias com mais vendas."""
@@ -279,7 +277,6 @@ def leaderboard(limit=5):
         .order_by('-total_sales')[:limit]
     )
 
-from django.db.models import Sum
 def home(request):
     total_users = User.objects.count()
     total_services = Service.objects.count()
@@ -560,6 +557,13 @@ def book_service(request, service_id):
     if request.method == "POST":
         form = BookingForm(request.POST)
         if form.is_valid():
+            scheduled_time = form.cleaned_data.get('scheduled_time')
+
+            # Check if the booking time is in the future
+            if scheduled_time < now():
+                messages.error(request, "You cannot book a service in the past. Please select a valid time.")
+                return redirect('service_detail', service_id=service_id)
+
             # Check if the user has enough balance
             if user_profile.wallet < service.price:
                 messages.error(request, "You don't have enough balance to book this service. Please add funds to your wallet.")
@@ -569,7 +573,7 @@ def book_service(request, service_id):
             user_profile.wallet -= service.price
             user_profile.save()
 
-            # Create booking
+            # Create the booking
             booking = form.save(commit=False)
             booking.service = service
             booking.customer = user_profile
@@ -581,12 +585,12 @@ def book_service(request, service_id):
                 message=f"New booking for the service '{service.title}'.",
                 booking=booking,
                 action_required=True,
-                url = reverse('pending_bookings', kwargs={'service_id': service.id})
+                url=reverse('pending_bookings', kwargs={'service_id': service.id}),
             )
             messages.success(request, "Booking successful! Your request has been sent to the provider.")
             return redirect('service_detail', service_id=service_id)
         else:
-            messages.error(request, "Invalid booking details. Please try again.")
+            messages.error(request, "Invalid booking details. Please correct the errors and try again.")
             return redirect('service_detail', service_id=service_id)
 
     else:
@@ -625,7 +629,6 @@ def update_booking_status(request, booking_id):
 
     return redirect('myorders')
 
-from django.db.models import Count, Max, Subquery, OuterRef
 
 @login_required
 def notifications(request):
@@ -716,11 +719,4 @@ def user_chats(request):
     profile = request.user.profile
 
     # Get chats where the user is a customer or provider
-    customer_chats = Chat.objects.filter(booking__customer=profile).select_related('booking__service', 'booking__service__provider')
-    provider_chats = Chat.objects.filter(booking__service__provider__profile=profile).select_related('booking__customer')
-
-    context = {
-        'customer_chats': customer_chats,
-        'provider_chats': provider_chats,
-    }
-    return render(request, 'chats.html', context)
+    customer_chats = Chat.objects.f
