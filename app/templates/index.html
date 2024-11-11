@@ -11,14 +11,11 @@
         </div>
     </header>
 
-    <!-- Top Providers Section -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 container mx-auto my-10 px-4">
-        <!-- Top Providers Section -->
         <section class="bg-base-100 shadow-xl rounded-lg p-6">
             <h2 class="text-3xl font-bold text-center mb-6">Top Providers</h2>
             <div class="flex justify-center items-end space-x-4">
                 {% if providers|length > 0 %}
-                    <!-- 2nd Place -->
                     {% if providers|length > 1 %}
                         <div class="text-center">
                             <a href="{% url 'profile' providers.1.profile.user.username %}">
@@ -40,7 +37,6 @@
                         </div>
                     {% endif %}
 
-                    <!-- 1st Place -->
                     <div class="text-center">
                         <a href="{% url 'profile' providers.0.profile.user.username %}" class="inline-block">
                             <div class="avatar placeholder">
@@ -60,7 +56,6 @@
                         <p class="mt-2 text-yellow-500 font-bold">1st Place</p>
                     </div>
 
-                    <!-- 3rd Place -->
                     {% if providers|length > 2 %}
                         <div class="text-center">
                             <a href="{% url 'profile' providers.2.profile.user.username %}" class="inline-block">
@@ -87,8 +82,6 @@
             </div>
         </section>
 
-
-        <!-- Additional Content Section 1 -->
         <section class="bg-base-100 shadow-xl rounded-lg p-6">
             <h2 class="text-3xl font-bold text-center mb-8">Recent Bookings</h2>
             {% if recent_bookings %}
@@ -105,7 +98,6 @@
                                 </div>
                             </div>
                             <div>
-                                <!-- Link para a página de detalhes do serviço -->
                                 <h3 class="text-lg font-semibold">
                                     <a href="/service/{{ booking.service.id }}" class="text-primary hover:underline">
                                         {{ booking.service.title }}
@@ -123,14 +115,9 @@
             {% endif %}
         </section>
 
-
-
-
-        <!-- Additional Content Section 2 -->
-        <section class="bg-base-200 shadow-xl rounded-lg p-8 flex flex-col items-center">
+        <section class="bg-base-100 shadow-xl rounded-lg p-8 flex flex-col items-center">
             <h2 class="text-3xl font-bold text-center mb-6">Platform Statistics</h2>
-            <div class="grid grid-cols-2 gap-8 text-center mt-4">
-                <!-- Users -->
+            <div class="grid grid-cols-3 gap-8 text-center mt-4">
                 <div>
                     <div class="flex justify-center items-center text-primary mb-4">
                         <i class="fas fa-users text-5xl"></i>
@@ -138,17 +125,13 @@
                     <h3 class="text-4xl font-extrabold">{{ total_users }}</h3>
                     <p class="text-lg text-gray-600">Users</p>
                 </div>
-
-                <!-- Services -->
                 <div>
                     <div class="flex justify-center items-center text-primary mb-4">
-                        <i class="fa-solid fa-briefcase text-5xl"></i>
+                        <i class="fas fa-user-tie text-5xl"></i>
                     </div>
-                    <h3 class="text-4xl font-extrabold">{{ total_services }}</h3>
-                    <p class="text-lg text-gray-600">Services</p>
+                    <h3 class="text-4xl font-extrabold">{{ total_providers }}</h3>
+                    <p class="text-lg text-gray-600">Providers</p>
                 </div>
-
-                <!-- Reviews -->
                 <div>
                     <div class="flex justify-center items-center text-primary mb-4">
                         <i class="fas fa-star text-5xl"></i>
@@ -156,8 +139,20 @@
                     <h3 class="text-4xl font-extrabold">{{ total_reviews }}</h3>
                     <p class="text-lg text-gray-600">Reviews</p>
                 </div>
-
-                <!-- Revenue -->
+                <div>
+                    <div class="flex justify-center items-center text-primary mb-4">
+                        <i class="fa-solid fa-briefcase text-5xl"></i>
+                    </div>
+                    <h3 class="text-4xl font-extrabold">{{ total_services }}</h3>
+                    <p class="text-lg text-gray-600">Services</p>
+                </div>
+                <div>
+                    <div class="flex justify-center items-center text-primary mb-4">
+                        <i class="fas fa-handshake text-5xl"></i>
+                    </div>
+                    <h3 class="text-4xl font-extrabold">{{ total_services_provided }}</h3>
+                    <p class="text-lg text-gray-600">Services Provided</p>
+                </div>
                 <div>
                     <div class="flex justify-center items-center text-primary mb-4">
                         <i class="fas fa-dollar-sign text-5xl"></i>
@@ -168,8 +163,5 @@
             </div>
         </section>
     </div>
-
-
-
 {% endblock %}
 
