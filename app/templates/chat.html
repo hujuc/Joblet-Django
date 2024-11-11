@@ -10,11 +10,50 @@
     <h3 class="text-lg font-semibold">Booking Details</h3>
     <p class="text-sm"><strong>Service:</strong> {{ booking.service.title }}</p>
     <p class="text-sm"><strong>Service Category:</strong> {{ booking.service.category.name }}</p>
-    <p class="text-sm"><strong>Service Provider:</strong> {{ booking.service.provider.profile.user.username }}</p>
-    <p class="text-sm"><strong>Customer:</strong> {{ booking.customer.user.username }}</p>
-    <p class="text-sm"><strong>Status:</strong> <span class="badge badge-info">{{ booking.get_status_display }}</span></p>
+{#    <p class="text-sm"><strong>Service Provider:</strong> {{ booking.service.provider.profile.user.username }}</p>#}
+{#    <p class="text-sm"><strong>Customer:</strong> {{ booking.customer.user.username }}</p>#}
     <p class="text-sm"><strong>Scheduled Time:</strong> {{ booking.scheduled_time|date:"M d, Y H:i" }}</p>
     <p class="text-sm"><strong>Details:</strong> {{ booking.details }}</p>
+</div>
+
+<!-- Avatar of the other user -->
+<!-- Avatar of the other user -->
+<div class="flex items-center gap-4 mb-6">
+    <!-- Avatar -->
+    <div class="avatar">
+        <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+            {% if user.profile == booking.customer %}
+                {% if booking.service.provider.profile.avatar %}
+                    <img src="{{ booking.service.provider.profile.avatar.url }}" alt="{{ booking.service.provider.profile.user.username }}">
+                {% else %}
+                    <span class="text-white text-xl font-semibold bg-primary w-full h-full flex items-center justify-center">
+                        {{ booking.service.provider.profile.user.username|slice:":1"|upper }}
+                    </span>
+                {% endif %}
+            {% else %}
+                {% if booking.customer.avatar %}
+                    <img src="{{ booking.customer.avatar.url }}" alt="{{ booking.customer.user.username }}">
+                {% else %}
+                    <span class="text-white text-xl font-semibold bg-primary w-full h-full flex items-center justify-center">
+                        {{ booking.customer.user.username|slice:":1"|upper }}
+                    </span>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Username -->
+    <div>
+        {% if user.profile == booking.customer %}
+            <a href="{% url 'profile' booking.service.provider.profile.user.username %}" class="text-xl font-bold hover:underline">
+                {{ booking.service.provider.profile.user.username }}
+            </a>
+        {% else %}
+            <a href="{% url 'profile' booking.customer.user.username %}" class="text-xl font-bold hover:underline">
+                {{ booking.customer.user.username }}
+            </a>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Chat Messages -->

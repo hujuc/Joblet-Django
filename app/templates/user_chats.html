@@ -72,9 +72,20 @@
                         >
                             <div>
                                 <p class="font-semibold">{{ chat.booking.service.title }}</p>
-                                <p class="text-sm text-gray-500">
-                                    Chat with {{ chat.booking.customer.user.username }}
-                                </p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    {% if chat.booking.service.provider.profile.avatar %}
+                                        <img
+                                            src="{{ chat.booking.service.provider.profile.avatar.url }}"
+                                            alt="{{ chat.booking.service.provider.profile.user.username }}"
+                                            class="w-8 h-8 rounded-full"
+                                        >
+                                    {% else %}
+                                        <span class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                                            {{ chat.booking.service.provider.profile.user.username|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
+                                    <p class="text-md">{{ chat.booking.service.provider.profile.user.username }}</p>
+                                </div>
                             </div>
                             <span class="text-sm text-gray-400">
                                 {{ chat.created_at|date:"M d, Y H:i" }}
