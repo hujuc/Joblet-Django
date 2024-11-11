@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-6 mt-4">My Active Chats</h2>
+
+<div class="grid grid-cols-1 gap-4">
+    {% if not customer_chats and not provider_chats %}
+        <p class="text-gray-500">You have no active chats.</p>
+    {% endif %}
+
+    <!-- Chats as a Customer -->
+    {% if customer_chats %}
+        <div>
+            {% if provider_chats %}
+                <h3 class="text-xl font-semibold mb-2">Chats as a Customer</h3>
+            {% endif %}
+            <ul class="bg-base-200 rounded-lg p-4 shadow-md">
+                {% for chat in customer_chats %}
+                    <li class="mb-3">
+                        <a
+                            href="{% url 'chat_view' chat.booking.id %}"
+                            class="flex justify-between items-center hover:bg-base-300 p-2 rounded-lg"
+                        >
+                            <div>
+                                <p class="font-semibold">{{ chat.booking.service.title }}</p>
+                                <div class="flex items-center gap-2">
+                                    {% if chat.booking.service.provider.profile.avatar %}
+                                        <img
+                                            src="{{ chat.booking.service.provider.profile.avatar.url }}"
+                                            alt="{{ chat.booking.service.provider.profile.user.username }}"
+                                            class="w-8 h-8 rounded-full"
+                                        >
+                                    {% else %}
+                                        <span class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                                            {{ chat.booking.service.provider.profile.user.username|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
+                                    <p class="text-sm">{{ chat.booking.service.provider.profile.user.username }}</p>
+                                </div>
+                            </div>
+                            <span class="text-sm text-gray-400">
+                                {{ chat.created_at|date:"M d, Y H:i" }}
+                            </span>
+                        </a>
+                    </li>
+                {% empty %}
+                    <p class="text-gray-500">You have no chats as a customer.</p>
+                {% endfor %}
+            </ul>
+        </div>
+
+    <hr class="my-6">
+    {% endif %}
+
+    <!-- Chats as a Provider -->
+    {% if provider_chats %}
+        <div>
+            {% if customer_chats %}
+                <h3 class="text-xl font-semibold mb-2">Chats as a Provider</h3>
+            {% endif %}
+            <ul class="bg-base-200 rounded-lg p-4 shadow-md">
+                {% for chat in provider_chats %}
+                    <li class="mb-3">
+                        <a
+                            href="{% url 'chat_view' chat.booking.id %}"
+                            class="flex justify-between items-center hover:bg-base-300 p-2 rounded-lg"
+                        >
+                            <div>
+                                <p class="font-semibold">{{ chat.booking.service.title }}</p>
+                                <p class="text-sm text-gray-500">
+                                    Chat with {{ chat.booking.customer.user.username }}
+                                </p>
+                            </div>
+                            <span class="text-sm text-gray-400">
+                                {{ chat.created_at|date:"M d, Y H:i" }}
+                            </span>
+                        </a>
+                    </li>
+                {% empty %}
+                    <p class="text-gray-500">You have no chats as a provider.</p>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

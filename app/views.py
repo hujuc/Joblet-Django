@@ -716,7 +716,19 @@ def reject_booking(request, booking_id):
     return redirect('pending_bookings', service_id=booking.service.id)
 
 def user_chats(request):
-    profile = request.user.profile
+    profile = request.user.profile  # Assuming a one-to-one relationship
+    customer_chats = Chat.objects.filter(
+        booking__customer=profile,
+        booking__status='in_progress'
+    ).select_related('booking__service', 'booking__service__provider')
 
-    # Get chats where the user is a customer or provider
-    customer_chats = Chat.objects.f
+    provider_chats = Chat.objects.filter(
+        booking__service__provider__profile=profile,
+        booking__status='in_progress'
+    ).select_related('booking__customer')
+
+    context = {
+        'customer_chats': customer_chats,
+        'provider_chats': provider_chats,
+    }
+    return render(request, 'user_chats.html', context)

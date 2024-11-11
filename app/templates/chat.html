@@ -12,6 +12,7 @@
     <p class="text-sm"><strong>Service Category:</strong> {{ booking.service.category.name }}</p>
     <p class="text-sm"><strong>Service Provider:</strong> {{ booking.service.provider.profile.user.username }}</p>
     <p class="text-sm"><strong>Customer:</strong> {{ booking.customer.user.username }}</p>
+    <p class="text-sm"><strong>Status:</strong> <span class="badge badge-info">{{ booking.get_status_display }}</span></p>
     <p class="text-sm"><strong>Scheduled Time:</strong> {{ booking.scheduled_time|date:"M d, Y H:i" }}</p>
     <p class="text-sm"><strong>Details:</strong> {{ booking.details }}</p>
 </div>
