@@ -60,9 +60,9 @@
     <!-- Chats as a Provider -->
     {% if provider_chats %}
         <div>
-            {% if customer_chats %}
-                <h3 class="text-xl font-semibold mb-2">Chats as a Provider</h3>
-            {% endif %}
+{#            {% if customer_chats %}#}
+{#                <h3 class="text-xl font-semibold mb-2">Chats as a Provider</h3>#}
+{#            {% endif %}#}
             <ul class="bg-base-200 rounded-lg p-4 shadow-md">
                 {% for chat in provider_chats %}
                     <li class="mb-3">
@@ -72,19 +72,19 @@
                         >
                             <div>
                                 <p class="font-semibold">{{ chat.booking.service.title }}</p>
-                                <div class="flex items-center gap-2 mt-1">
-                                    {% if chat.booking.service.provider.profile.avatar %}
+                                <div class="flex items-center gap-2">
+                                    {% if chat.booking.customer.avatar %}
                                         <img
-                                            src="{{ chat.booking.service.provider.profile.avatar.url }}"
-                                            alt="{{ chat.booking.service.provider.profile.user.username }}"
+                                            src="{{ chat.booking.customer.avatar.url }}"
+                                            alt="{{ chat.booking.customer.user.username }}"
                                             class="w-8 h-8 rounded-full"
                                         >
                                     {% else %}
                                         <span class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
-                                            {{ chat.booking.service.provider.profile.user.username|slice:":1"|upper }}
+                                            {{ chat.booking.customer.user.username|slice:":1"|upper }}
                                         </span>
                                     {% endif %}
-                                    <p class="text-md">{{ chat.booking.service.provider.profile.user.username }}</p>
+                                    <p class="text-sm">{{ chat.booking.customer.user.username }}</p>
                                 </div>
                             </div>
                             <span class="text-sm text-gray-400">
