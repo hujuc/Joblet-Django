@@ -279,25 +279,24 @@ from django.db.models import Sum
 from .models import Service, Review
 
 def home(request):
-    recent_bookings = Booking.objects.filter(
-        Q(status='completed') | Q(status='in_progress')
-    ).order_by('-created_at')[:5]
     total_users = User.objects.count()
     total_services = Service.objects.count()
-    total_reviews = Review.objects.count()
-    total_revenue = Service.objects.aggregate(Sum('price'))['price__sum'] or 0
-    categories = top_categories()
-    providers = leaderboard()
+    total_reviews = Booking.objects.filter(status='completed').count()  # Assuming completed bookings have reviews
+    total_revenue = Booking.objects.filter(status='completed').aggregate(total=Sum('service__price'))['total'] or 0
+    total_providers = Provider.objects.count()
+    total_services_provided = Booking.objects.filter(status='completed').count()
 
     context = {
-        'recent_bookings': recent_bookings,
-        'categories': categories,
-        'providers': providers,
         'total_users': total_users,
         'total_services': total_services,
         'total_reviews': total_reviews,
         'total_revenue': total_revenue,
+        'total_providers': total_providers,
+        'total_services_provided': total_services_provided,
+        'recent_bookings': Booking.objects.order_by('-created_at')[:5],  # Example
+        'providers': Provider.objects.annotate(total_sales=Count('services__booking')).order_by('-total_sales')[:3],
     }
+
     return render(request, 'index.html', context)
 
 def myorders(request):
