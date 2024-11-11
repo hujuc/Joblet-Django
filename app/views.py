@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
-from django.db.models import Q, Avg, Sum
+from django.db.models import Q, Avg
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_http_methods
@@ -24,6 +24,9 @@ def pendingservices(request):
     services_pending = Service.objects.filter(approval='pending approval')
     return render(request, 'pendingservices.html', {'services_pending': services_pending})
 
+# import logging
+# logger = logging.getLogger(__name__)
+from django.urls import reverse
 
 def approve_service(request, service_id):
     if not request.user.is_authenticated or not request.user.is_superuser:
@@ -35,7 +38,8 @@ def approve_service(request, service_id):
 
         notification = Notification.objects.create(
             recipient=service.provider.profile,
-            message=f"Your service '{service.title}' has been approved by an administrator and is now visible to customers."
+            message=f"Your service '{service.title}' has been approved by an administrator and is now visible to customers.",
+            url = reverse('myservices'),
         )
         # logger.debug(f"Notification created: {notification}")
 
@@ -52,7 +56,8 @@ def reject_service(request, service_id):
 
         Notification.objects.create(
             recipient=service.provider.profile,
-            message=f"Your service '{service.title}' has been rejected by an administrator."
+            message=f"Your service '{service.title}' has been rejected by an administrator.",
+            url=reverse('myservices')
         )
 
         return redirect('pendingservices')
@@ -252,6 +257,7 @@ def logout_view(request):
     messages.success(request, "You have logged out successfully!")
     return redirect('index')
 
+from django.db.models import Count
 
 def top_categories(limit=5):
     """Retorna as categorias com mais vendas."""
@@ -427,7 +433,8 @@ def profile(request, username):
 
                 Notification.objects.create(
                     recipient=user_profile.provider.profile,
-                    message=f"You have received a new review from {request.user.username} for the service '{review.provider.services.first().title}'."
+                    message=f"You have received a new review from {request.user.username} for the service '{review.provider.services.first().title}'.",
+                    url=reverse('profile', kwargs={'username': user_profile.user.username})
                 )
 
                 return redirect('profile', username=username)
@@ -483,7 +490,8 @@ def chat_view(request, booking_id):
 
             Notification.objects.create(
                 recipient=message.recipient,
-                message=f"{message.sender.user.username} sent a new message in the chat for the service '{booking.service.title}'."
+                message=f"{message.sender.user.username} sent a new message in the chat for the service '{booking.service.title}'.",
+                url = reverse('chat_view', kwargs={'booking_id': booking.id})
             )
 
             messages.success(request, "Message sent successfully.")
@@ -571,7 +579,8 @@ def book_service(request, service_id):
                 recipient=service.provider.profile,
                 message=f"New booking for the service '{service.title}'.",
                 booking=booking,
-                action_required=True
+                action_required=True,
+                url = reverse('pending_bookings', kwargs={'service_id': service.id})
             )
             messages.success(request, "Booking successful! Your request has been sent to the provider.")
             return redirect('service_detail', service_id=service_id)
@@ -633,18 +642,18 @@ def notifications(request):
 
     notifications = (
         user_profile.notifications
-        .values('message', 'read')
+        .values('message', 'read', 'url')
         .annotate(
             count=Count('id'),
             latest_created_at=Max('created_at'),
-            representative_id=Subquery(representative_ids)
+            representative_id=Subquery(representative_ids),
         )
         .order_by('read', '-latest_created_at')
     )
 
     return render(request, 'notifications.html', {
         'notifications': notifications,
-        'unread_notifications_count': unread_notifications_count
+        'unread_notifications_count': unread_notifications_count,
     })
 
 
@@ -679,7 +688,8 @@ def accept_booking(request, booking_id):
 
     Notification.objects.create(
         recipient=booking.customer,
-        message=f"Your request for the service '{booking.service.title}' has been accepted by the provider and is now in progress."
+        message=f"Your request for the service '{booking.service.title}' has been accepted by the provider and is now in progress.",
+        url = reverse('myorders')
     )
 
     # Confirmation message
@@ -694,7 +704,8 @@ def reject_booking(request, booking_id):
 
     Notification.objects.create(
         recipient=booking.customer,
-        message=f"Your request for the service '{booking.service.title}' was rejected by the provider."
+        message=f"Your request for the service '{booking.service.title}' was rejected by the provider.",
+        url = reverse('myorders')
     )
 
     messages.success(request, "Booking rejected successfully.")
