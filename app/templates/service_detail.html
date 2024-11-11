@@ -60,7 +60,7 @@
                         </div>
                     </a>
                     <!-- Book Now Button triggers modal -->
-                    {% if user.is_authenticated and user.profile and user.is_provider %}
+                    {% if user.is_authenticated and user.profile and not user.is_provider %}
                         <button onclick="document.getElementById('bookingModal').classList.remove('hidden')" class="btn btn-primary text-white ml-auto">Book Now</button>
                     {% elif not user.is_authenticated %}
                         <a href="{% url 'login' %}" class="btn btn-primary text-white ml-auto">Login to Book</a>
