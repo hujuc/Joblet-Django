@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
-from django.db.models import Q, Avg
+from django.db.models import Q, Avg, Sum
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_http_methods
@@ -24,8 +24,6 @@ def pendingservices(request):
     services_pending = Service.objects.filter(approval='pending approval')
     return render(request, 'pendingservices.html', {'services_pending': services_pending})
 
-# import logging
-# logger = logging.getLogger(__name__)
 
 def approve_service(request, service_id):
     if not request.user.is_authenticated or not request.user.is_superuser:
@@ -153,7 +151,8 @@ def edit_service(request, service_id):
         service.save()  # Save the service with updated fields
         return redirect('myservices')
 
-    return render(request, 'edit_service.html', {'service': service, 'categories': categories})
+    return render(request, 'myservices.html', {'service': service, 'categories': categories})
+    #return redirect('myservices')
 
 
 @login_required
@@ -253,7 +252,6 @@ def logout_view(request):
     messages.success(request, "You have logged out successfully!")
     return redirect('index')
 
-from django.db.models import Count
 
 def top_categories(limit=5):
     """Retorna as categorias com mais vendas."""
@@ -274,9 +272,6 @@ def leaderboard(limit=5):
         .filter(total_sales__gt=0)  # Somente providers com vendas
         .order_by('-total_sales')[:limit]
     )
-
-from django.db.models import Sum
-from .models import Service, Review
 
 def home(request):
     total_users = User.objects.count()
@@ -536,13 +531,13 @@ def edit_profile(request, user_id):
 
     # Ensure only the profile owner can edit
     if request.user != profile.user:
-        return redirect('profile', user_id=user_id)
+        return redirect('profile', username=profile.user.username)
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('profile', user_id=user_id)
+            return redirect('profile', username=profile.user.username)
     else:
         form = ProfileForm(instance=profile)
 
@@ -595,11 +590,11 @@ def update_booking_status(request, booking_id):
 
     if request.user.profile != booking.customer:
         messages.error(request, "You do not have permission to change the status of this booking.")
-        return redirect('profile', user_id=request.user.id)
+        return redirect('profile', username=request.user.username)
 
     if not booking.accepted_at:
         messages.warning(request, "This booking has not been accepted by the provider yet.")
-        return redirect('profile', user_id=request.user.id)
+        return redirect('profile', username=request.user.username)
 
     if booking.status != 'completed':
         booking.status = 'completed'
