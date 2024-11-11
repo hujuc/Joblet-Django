@@ -76,14 +76,34 @@ def ban_user(request, user_id):
 def myservices(request):
     user_profile = get_object_or_404(Profile, user=request.user)
     provider = get_object_or_404(Provider, profile=user_profile)
-    user_services = Service.objects.filter(provider=provider)
     categories = Category.objects.all()  # Fetch categories here
 
-    # Contagem de bookings para cada serviço
+    # Receber parâmetros de filtro da URL
+    search_name = request.GET.get('search_name', '').strip()
+    filter_status = request.GET.get('filter_status', '').strip()
+
+    # Base queryset com os serviços do provedor
+    user_services = Service.objects.filter(provider=provider)
+
+    # Filtrar por nome de serviço
+    if search_name:
+        user_services = user_services.filter(title__icontains=search_name)
+
+    # Preparar a lista de serviços com contagens de reservas
     services_with_counts = []
     for service in user_services:
-        bookings_to_approve_count = Booking.objects.filter(service=service, status='pending', accepted_at__isnull=True).count()
-        bookings_in_progress_count = Booking.objects.filter(service=service, status='in_progress', accepted_at__isnull=False).count()
+        bookings_to_approve_count = Booking.objects.filter(
+            service=service, status='pending', accepted_at__isnull=True
+        ).count()
+        bookings_in_progress_count = Booking.objects.filter(
+            service=service, status='in_progress', accepted_at__isnull=False
+        ).count()
+
+        # Aplicar filtro por status das reservas
+        if filter_status == 'bookings_to_approve' and bookings_to_approve_count == 0:
+            continue
+        elif filter_status == 'bookings_in_progress' and bookings_in_progress_count == 0:
+            continue
 
         services_with_counts.append({
             'service': service,
@@ -93,9 +113,8 @@ def myservices(request):
 
     return render(request, 'myservices.html', {
         'services_with_counts': services_with_counts,
-        'categories': categories
+        'categories': categories,
     })
-
 
 def categories(request):
     if not request.user.is_authenticated or not request.user.is_superuser:

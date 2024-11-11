@@ -2,34 +2,42 @@
 
 {% block content %}
 <div class="p-4">
-    <!-- Add New Service Button -->
-    <div class="flex justify-start mb-4">
+
+    <div class="flex justify-between items-center mb-4 gap-4">
+        <form method="get" class="flex gap-4">
+            <div>
+                <input type="text" name="search_name" class="input input-bordered" placeholder="Filter by Service Name" value="{{ request.GET.search_name }}">
+            </div>
+            <div>
+                <select name="filter_status" class="select select-bordered">
+                    <option value="">Select Status</option>
+                    <option value="bookings_to_approve" {% if request.GET.filter_status == "bookings_to_approve" %}selected{% endif %}>Bookings to Approve</option>
+                    <option value="bookings_in_progress" {% if request.GET.filter_status == "bookings_in_progress" %}selected{% endif %}>Bookings in Progress</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary text-white">Apply Filters</button>
+        </form>
+
+        <!-- Add New Service Button -->
         <label for="add-service-modal" class="btn btn-primary text-white">Add New Service</label>
     </div>
 
     <!-- Services List -->
     <div class="bg-base-200 rounded-lg p-4">
-        <div class="flex flex-wrap gap-4">
-            {# If no services found #}
+        <div class="flex flex-wrap gap-4 justify-center">
             {% if services_with_counts|length == 0 %}
-                <div>
-                    <h2 class="card-title
-                        text-center
-                        text-2xl
-                        font-bold
-                        text-gray-700
-                        mb-4
-                    ">
+                <div class="w-full text-center">
+                    <h2 class="card-title text-2xl font-bold text-gray-700 mb-4">
                         No Services Found
                     </h2>
-                    <p class="text-center text-gray-500">
+                    <p class="text-gray-500">
                         You have not added any services yet. Click on the "Add New Service" button to add a new service.
                     </p>
                 </div>
             {% endif %}
             {% for service_data in services_with_counts %}
                 {% with service=service_data.service %}
-                <div class="card bg-base-100 w-96 shadow-xl relative">
+                <div class="card bg-base-100 w-full md:w-[48%] lg:w-[32%] shadow-xl relative">
                     <!-- Dropdown Button -->
                     <div class="absolute top-2 right-2">
                         <div class="dropdown">
@@ -75,6 +83,9 @@
             {% endfor %}
         </div>
     </div>
+
+
+
 </div>
 
 <!-- Add Service Modal -->

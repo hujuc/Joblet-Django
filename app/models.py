@@ -142,7 +142,7 @@ class Category(models.Model):
 class Service(models.Model):
     provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='services')
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=80)
     description = models.TextField()
     price = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
     duration = models.DurationField()
