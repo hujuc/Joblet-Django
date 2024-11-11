@@ -21,8 +21,44 @@
                     <a class="btn btn-ghost text-3xl text-white" href="{% url 'index' %}">joblet.</a>
 
                     <ul class="menu menu-horizontal px-1 text-white text-lg">
+                        <li>
+                            <details>
+                                <summary>Services</summary>
+                                <ul class="bg-primary rounded-t-none px-2 z-10 shadow-xl w-52">
+                                    <!-- All Services Link -->
+                                    <li>
+                                        <a href="{% url 'services' %}" class="block pl-4 font-semibold hover:bg-secondary rounded-lg">
+                                            All Services
+                                        </a>
+                                    </li>
+
+                                    <!-- Separator or Label -->
+                                    <li class="py-2 text-base-300 text-sm font-semibold uppercase tracking-wide">
+                                        Categories
+                                    </li>
+
+                                    <!-- Categories (limit to 5) -->
+                                    {% for category in categories|slice:":5" %}
+                                        <li>
+                                            <a href="{% url 'services' %}?category={{ category.id }}" class="block px-2 py-2 hover:bg-secondary rounded-lg flex gap-4">
+                                                {% if category.icon %}
+                                                    <i class="{{ category.icon }}"></i>
+                                                {% else %}
+                                                    <i class="fas fa-tag"></i>
+                                                {% endif %}
+                                                {{ category.name }}
+                                            </a>
+                                        </li>
+                                    {% empty %}
+                                        <li>
+                                            <p class="block px-4 py-2 text-gray-500">No categories available</p>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </details>
+                        </li>
+
                         {% if user.is_authenticated %}
-                            <li><a href="{% url 'user_chats' %}">Chat</a></li>
                             {% if user.profile.is_provider %}
                                 <li><a href="{% url 'myservices' %}">My Services</a></li>
 {#                                <li><a href="">Opportunities</a></li>#}
@@ -30,47 +66,15 @@
                                 <li><a href="{% url 'pendingservices' %}">Pending Services</a></li>
                                 <li><a href="{% url 'users' %}">Users</a></li>
                                 <li><a href="{% url 'categories' %}">Categories</a></li>
+                            {% else %}
+                                <li><a href="{% url 'myorders' %}">My Orders</a></li>
                             {% endif %}
                         {% endif %}
 
-                        {% if not user.is_authenticated or  not user.profile.is_provider %}
-                            <li>
-                                <details>
-                                    <summary>Services</summary>
-                                    <ul class="bg-primary rounded-t-none px-2 z-10 shadow-xl w-52">
-                                        <!-- All Services Link -->
-                                        <li>
-                                            <a href="{% url 'services' %}" class="block pl-4 font-semibold hover:bg-secondary rounded-lg">
-                                                All Services
-                                            </a>
-                                        </li>
-
-                                        <!-- Separator or Label -->
-                                        <li class="py-2 text-base-300 text-sm font-semibold uppercase tracking-wide">
-                                            Categories
-                                        </li>
-
-                                        <!-- Categories (limit to 5) -->
-                                        {% for category in categories|slice:":5" %}
-                                            <li>
-                                                <a href="{% url 'services' %}?category={{ category.id }}" class="block px-2 py-2 hover:bg-secondary rounded-lg flex gap-4">
-                                                    {% if category.icon %}
-                                                        <i class="{{ category.icon }}"></i>
-                                                    {% else %}
-                                                        <i class="fas fa-tag"></i>
-                                                    {% endif %}
-                                                    {{ category.name }}
-                                                </a>
-                                            </li>
-                                        {% empty %}
-                                            <li>
-                                                <p class="block px-4 py-2 text-gray-500">No categories available</p>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                </details>
-                            </li>
+                        {% if not user.is_authenticated or not user.profile.is_provider %}
                             <li><a href="{% url 'providers' %}">Providers</a></li>
+                        {% elif not user.profile.is_provider %}
+                            <li><a href="{% url 'myorders' %}" class="justify-between">My Orders</a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -79,6 +83,10 @@
                     <div class="navbar-end flex gap-4">
                         <div class="dropdown dropdown-end">
                             <div class="flex items-center gap-2">
+                                <a href="{% url 'user_chats' %}" class="btn btn-ghost btn-circle relative">
+                                    <i class="fas fa-message text-2xl text-white"></i>
+                                </a>
+
                                 <!-- Notifications Button -->
                                 <a href="{% url 'notifications' %}" class="btn btn-ghost btn-circle relative" id="notification-btn">
                                     <i class="fas fa-bell text-2xl text-white"></i>
@@ -106,9 +114,6 @@
                                     <!-- Profile Dropdown -->
                                     <ul tabindex="0" id="profile-menu" class="menu menu-sm dropdown-content bg-white rounded-box z-[1] mt-3 w-52 p-2 shadow border-4 border-primary hidden">
                                         <li><a href="{% url 'profile' user.username %}" class="justify-between">Profile</a></li>
-                                        {% if user.username != 'admin' and not user.is_provider %}
-                                            <li><a href="{% url 'myorders' %}" class="justify-between">My Orders</a></li>
-                                        {% endif %}
                                         <li>
                                             <a href="#" class="justify-between" onclick="document.getElementById('logout-form').submit()">Logout</a>
                                             <form id="logout-form" action="{% url 'logout' %}" method="POST" class="hidden">
@@ -132,14 +137,15 @@
                         </ul>
                     </div>
                 {% endif %}
+            </div>
         </div>
-    </div>
 
 
-    <div class="container mx-auto overflow-hidden py-4 px-4">
-        {% include 'alerts.html' %}
-        {% block content %}
-        {% endblock %}
+        <div class="container mx-auto overflow-hidden py-4 px-4">
+            {% include 'alerts.html' %}
+            {% block content %}
+            {% endblock %}
+        </div>
     </div>
 </body>
 <script>
@@ -163,7 +169,6 @@
             profileMenu.classList.toggle('hidden');
         }
     });
-
 </script>
 </html>
 

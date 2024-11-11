@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from decimal import Decimal
 
+from django.db.models import Count
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -96,6 +98,9 @@ class Chat(models.Model):
 
     def __str__(self):
         return f"Chat for Booking {self.booking.id} - {self.booking.service.title} by {self.booking.customer.user.username}"
+
+    def is_active(self):
+        return self.booking.status == 'in_progress'
 
 
 class Message(models.Model):
