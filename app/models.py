@@ -184,6 +184,11 @@ class Booking(models.Model):
     def __str__(self):
         return f"{self.service.title} - {self.customer.user.username} - {self.status}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.status == 'in_progress' and not hasattr(self, 'chat'):
+            Chat.objects.create(booking=self)
+
 class Notification(models.Model):
     recipient = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()

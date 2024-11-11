@@ -1,9 +1,14 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h2 class="text-2xl font-bold mb-6 mt-4">My Active Chats</h2>
+<h2 class="text-2xl font-bold mt-4">My Active Chats</h2>
+    {% if user.profile.is_provider %}
+        <p class="text-gray-500">Accept a booking to start a chat.</p>
+    {% else %}
+        <p class="text-gray-500">Book a service and have it accepted to start a chat.</p>
+    {% endif %}
 
-<div class="grid grid-cols-1 gap-4">
+<div class="grid grid-cols-1 gap-4 mt-6">
     {% if not customer_chats and not provider_chats %}
         <p class="text-gray-500">You have no active chats.</p>
     {% endif %}
