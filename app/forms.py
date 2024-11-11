@@ -223,9 +223,3 @@ class BookingForm(forms.ModelForm):
                 'rows': 4,
             }),
         }
-
-    def clean_scheduled_time(self):
-        scheduled_time = self.cleaned_data.get('scheduled_time')
-        if scheduled_time < now():
-            raise ValidationError("You cannot book a service in the past.")
-        return scheduled_time
