@@ -1,7 +1,6 @@
 {% extends "layout.html" %}
 
 {% block content %}
-
 <div class="p-4">
     <h1 class="text-2xl font-bold mb-4">Notifications</h1>
 
@@ -16,7 +15,14 @@
                 </p>
                 <p>{{ notification.latest_created_at }}</p>
 
-                <!-- Button to mark notification as read -->
+                <!-- Link para acessar o assunto da notificação, caso exista -->
+                {% if notification.url %}
+                    <a href="{{ notification.url }}" class="text-primary font-bold"><u>Access</u></a>
+                {% else %}
+                    <p class="text-gray-500">No subject found.</p>
+                {% endif %}
+
+                <!-- Botão para marcar notificação como lida -->
                 {% if not notification.read %}
                     <form action="{% url 'mark_notification_as_read' notification.representative_id %}" method="post">
                         {% csrf_token %}
@@ -28,6 +34,5 @@
     {% empty %}
         <p class="text-gray-500">No notifications found.</p>
     {% endfor %}
-
 </div>
 {% endblock %}

@@ -185,7 +185,8 @@ class Notification(models.Model):
     booking = models.ForeignKey('Booking', on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
     created_at = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)
-    action_required = models.BooleanField(default=False)  # Novo campo para indicar ações pendentes
+    action_required = models.BooleanField(default=False)
+    url = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return f"Notification for {self.recipient.user.username} - {'Read' if self.read else 'Unread'}"
