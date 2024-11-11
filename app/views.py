@@ -279,6 +279,7 @@ def leaderboard(limit=5):
         .order_by('-total_sales')[:limit]
     )
 
+from django.db.models import Sum
 def home(request):
     total_users = User.objects.count()
     total_services = Service.objects.count()
