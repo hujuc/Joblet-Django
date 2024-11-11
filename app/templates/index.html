@@ -1,0 +1,167 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <header class="hero bg-secondary rounded-lg text-white pt-6 pb-2">
+        <div class="hero-content text-center">
+            <div class="max-w-lg">
+                <h1 class="text-5xl font-bold">Welcome to Joblet</h1>
+                <p class="py-6">Find the best professionals for your projects with ease and confidence.</p>
+                <a href="/services/" class="btn btn-base mt-2">Explore Services</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 container mx-auto my-10 px-4">
+        <section class="bg-base-100 shadow-xl rounded-lg p-6">
+            <h2 class="text-3xl font-bold text-center mb-6">Top Providers</h2>
+            <div class="flex justify-center items-end space-x-4">
+                {% if providers|length > 0 %}
+                    {% if providers|length > 1 %}
+                        <div class="text-center">
+                            <a href="{% url 'profile' providers.1.profile.user.username %}">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral text-white w-24 h-24 rounded-full flex items-center justify-center">
+                                        {% if providers.1.profile.avatar %}
+                                            <img src="{{ providers.1.profile.avatar.url }}" alt="Avatar">
+                                        {% else %}
+                                            <span class="text-3xl font-bold">{{ providers.1.profile.user.username|slice:":1"|upper }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </a>
+                            <h3 class="text-lg font-semibold mt-2">{{ providers.1.profile.user.username }}</h3>
+                            <p class="text-sm text-gray-500">{{ providers.1.profile.location }}</p>
+                            <span class="badge badge-secondary text-white">{{ providers.1.total_sales }} sales</span>
+                            <div class="bg-secondary w-20 h-32 mx-auto rounded-t-lg mt-4"></div>
+                            <p class="mt-2 text-gray-500">2nd Place</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="text-center">
+                        <a href="{% url 'profile' providers.0.profile.user.username %}" class="inline-block">
+                            <div class="avatar placeholder">
+                                <div class="bg-neutral text-white w-24 h-24 rounded-full flex items-center justify-center">
+                                    {% if providers.0.profile.avatar %}
+                                        <img src="{{ providers.0.profile.avatar.url }}" alt="Avatar">
+                                    {% else %}
+                                        <span class="text-3xl font-bold">{{ providers.0.profile.user.username|slice:":1"|upper }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        <h3 class="text-xl font-bold mt-2">{{ providers.0.profile.user.username }}</h3>
+                        <p class="text-sm text-gray-500">{{ providers.0.profile.location }}</p>
+                        <span class="badge badge-primary text-white">{{ providers.0.total_sales }} sales</span>
+                        <div class="bg-primary w-20 h-40 mx-auto rounded-t-lg mt-4"></div>
+                        <p class="mt-2 text-yellow-500 font-bold">1st Place</p>
+                    </div>
+
+                    {% if providers|length > 2 %}
+                        <div class="text-center">
+                            <a href="{% url 'profile' providers.2.profile.user.username %}" class="inline-block">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral text-white w-24 h-24 rounded-full flex items-center justify-center">
+                                        {% if providers.2.profile.avatar %}
+                                            <img src="{{ providers.2.profile.avatar.url }}" alt="Avatar">
+                                        {% else %}
+                                            <span class="text-3xl font-bold">{{ providers.2.profile.user.username|slice:":1"|upper }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </a>
+                            <h3 class="text-lg font-semibold mt-2">{{ providers.2.profile.user.username }}</h3>
+                            <p class="text-sm text-gray-500">{{ providers.2.profile.location }}</p>
+                            <span class="badge badge-accent text-white">{{ providers.2.total_sales }} sales</span>
+                            <div class="bg-accent w-20 h-24 mx-auto rounded-t-lg mt-4"></div>
+                            <p class="mt-2 text-gray-500">3rd Place</p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-gray-500">No providers available yet.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="bg-base-100 shadow-xl rounded-lg p-6">
+            <h2 class="text-3xl font-bold text-center mb-8">Recent Bookings</h2>
+            {% if recent_bookings %}
+                <ul class="space-y-4">
+                    {% for booking in recent_bookings %}
+                        <li class="flex items-center space-x-4">
+                            <div class="avatar placeholder">
+                                <div class="bg-neutral text-white w-12 h-12 rounded-full flex items-center justify-center">
+                                    {% if booking.customer.avatar %}
+                                        <img src="{{ booking.customer.avatar.url }}" alt="{{ booking.customer.user.username }}">
+                                    {% else %}
+                                        <span class="text-lg font-bold">{{ booking.customer.user.username|slice:":1"|upper }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold">
+                                    <a href="/service/{{ booking.service.id }}" class="text-primary hover:underline">
+                                        {{ booking.service.title }}
+                                    </a>
+                                </h3>
+                                <p class="text-sm text-gray-500">
+                                    By: {{ booking.customer.user.username }}
+                                </p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-gray-500 text-center">No bookings found.</p>
+            {% endif %}
+        </section>
+
+        <section class="bg-base-100 shadow-xl rounded-lg p-8 flex flex-col items-center">
+            <h2 class="text-3xl font-bold text-center mb-6">Platform Statistics</h2>
+            <div class="grid grid-cols-3 gap-8 text-center mt-4">
+                <div>
+                    <div class="flex justify-center items-center text-primary mb-4">
+                        <i class="fas fa-users text-5xl"></i>
+                    </div>
+                    <h3 class="text-4xl font-extrabold">{{ total_users }}</h3>
+                    <p class="text-lg text-gray-600">Users</p>
+                </div>
+                <div>
+                    <div class="flex justify-center items-center text-primary mb-4">
+                        <i class="fas fa-user-tie text-5xl"></i>
+                    </div>
+                    <h3 class="text-4xl font-extrabold">{{ total_providers }}</h3>
+                    <p class="text-lg text-gray-600">Providers</p>
+                </div>
+                <div>
+                    <div class="flex justify-center items-center text-primary mb-4">
+                        <i class="fas fa-star text-5xl"></i>
+                    </div>
+                    <h3 class="text-4xl font-extrabold">{{ total_reviews }}</h3>
+                    <p class="text-lg text-gray-600">Reviews</p>
+                </div>
+                <div>
+                    <div class="flex justify-center items-center text-primary mb-4">
+                        <i class="fa-solid fa-briefcase text-5xl"></i>
+                    </div>
+                    <h3 class="text-4xl font-extrabold">{{ total_services }}</h3>
+                    <p class="text-lg text-gray-600">Services</p>
+                </div>
+                <div>
+                    <div class="flex justify-center items-center text-primary mb-4">
+                        <i class="fas fa-handshake text-5xl"></i>
+                    </div>
+                    <h3 class="text-4xl font-extrabold">{{ total_services_provided }}</h3>
+                    <p class="text-lg text-gray-600">Services Provided</p>
+                </div>
+                <div>
+                    <div class="flex justify-center items-center text-primary mb-4">
+                        <i class="fas fa-dollar-sign text-5xl"></i>
+                    </div>
+                    <h3 class="text-4xl font-extrabold">${{ total_revenue }}</h3>
+                    <p class="text-lg text-gray-600">Revenue</p>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}
+

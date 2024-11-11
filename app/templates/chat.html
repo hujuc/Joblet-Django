@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="text-2xl font-bold my-4">
+    Chat for Booking: {{ booking.service.title }}
+</h2>
+
+<!-- Booking Details -->
+<div class="bg-base-200 p-4 rounded-lg mb-6 shadow-md">
+    <h3 class="text-lg font-semibold">Booking Details</h3>
+    <p class="text-sm"><strong>Service:</strong> {{ booking.service.title }}</p>
+    <p class="text-sm"><strong>Service Category:</strong> {{ booking.service.category.name }}</p>
+{#    <p class="text-sm"><strong>Service Provider:</strong> {{ booking.service.provider.profile.user.username }}</p>#}
+{#    <p class="text-sm"><strong>Customer:</strong> {{ booking.customer.user.username }}</p>#}
+    <p class="text-sm"><strong>Scheduled Time:</strong> {{ booking.scheduled_time|date:"M d, Y H:i" }}</p>
+    <p class="text-sm"><strong>Details:</strong> {{ booking.details }}</p>
+</div>
+
+<!-- Avatar of the other user -->
+<!-- Avatar of the other user -->
+<div class="flex items-center gap-4 mb-6">
+    <!-- Avatar -->
+    <div class="avatar">
+        <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+            {% if user.profile == booking.customer %}
+                {% if booking.service.provider.profile.avatar %}
+                    <img src="{{ booking.service.provider.profile.avatar.url }}" alt="{{ booking.service.provider.profile.user.username }}">
+                {% else %}
+                    <span class="text-white text-xl font-semibold bg-primary w-full h-full flex items-center justify-center">
+                        {{ booking.service.provider.profile.user.username|slice:":1"|upper }}
+                    </span>
+                {% endif %}
+            {% else %}
+                {% if booking.customer.avatar %}
+                    <img src="{{ booking.customer.avatar.url }}" alt="{{ booking.customer.user.username }}">
+                {% else %}
+                    <span class="text-white text-xl font-semibold bg-primary w-full h-full flex items-center justify-center">
+                        {{ booking.customer.user.username|slice:":1"|upper }}
+                    </span>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Username -->
+    <div>
+        {% if user.profile == booking.customer %}
+            <a href="{% url 'profile' booking.service.provider.profile.user.username %}" class="text-xl font-bold hover:underline">
+                {{ booking.service.provider.profile.user.username }}
+            </a>
+        {% else %}
+            <a href="{% url 'profile' booking.customer.user.username %}" class="text-xl font-bold hover:underline">
+                {{ booking.customer.user.username }}
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Chat Messages -->
+<div class="bg-gray-100 p-4 rounded-lg max-h-96 overflow-y-auto chat-messages">
+    {% for chat_message in chat_messages %}
+        <div class="mb-4 {% if chat_message.sender == request.user.profile %}text-right{% else %}text-left{% endif %}">
+            <p class="font-semibold text-primary">
+                {% if chat_message.sender == request.user.profile %}
+                    You
+                {% else %}
+                    {{ chat_message.sender.user.username }}
+                {% endif %}
+            </p>
+            <p class="text-sm inline-block rounded-lg p-2 shadow-md {% if chat_message.sender == request.user.profile %}bg-primary text-white{% else %}bg-gray-200{% endif %}">
+                {{ chat_message.content }}
+            </p>
+            <p class="text-xs text-gray-500">
+                {{ chat_message.timestamp|date:"M d, Y H:i" }}
+            </p>
+        </div>
+    {% empty %}
+        <p class="text-gray-500 text-center">No messages yet. Start the conversation!</p>
+    {% endfor %}
+</div>
+
+<!-- Message Form -->
+<form method="POST" class="mt-4">
+    {% csrf_token %}
+    <div class="form-control mb-4">
+        {{ form.content.label_tag }}
+        {{ form.content }}
+    </div>
+    <div class="flex justify-end">
+        <button type="submit" class="btn btn-primary text-white">
+            Send
+        </button>
+    </div>
+</form>
+{% endblock %}

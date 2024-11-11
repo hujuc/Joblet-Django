@@ -1,0 +1,114 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="p-6">
+        <!-- Back to Previous Page -->
+        <a href="javascript:void(0);" onclick="window.history.back();" class="btn btn-primary text-white mb-6">Back to Previous Page</a>
+
+        <!-- Main Container -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Image Section -->
+            <div class="col-span-1">
+                {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.title }}" class="rounded-lg shadow-lg">
+                {% else %}
+                    <img src="https://via.placeholder.com/640x360.png?text=No+Image" alt="{{ service.title }}" class="rounded-lg shadow-lg">
+                {% endif %}
+            </div>
+
+            <!-- Service Details Section -->
+            <div class="col-span-2">
+                <!-- Title and Category -->
+                <div class="flex justify-between items-center">
+                    <h1 class="text-3xl font-bold">{{ service.title }}</h1>
+                    <span class="badge badge-primary text-white">{{ service.category.name }}</span>
+                </div>
+
+                <!-- Description -->
+                <p class="text-base-content text-lg mt-4">{{ service.description }}</p>
+
+                <!-- Metadata -->
+                <div class="mt-6 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-500">Posted on: {{ service.created_at|date:"M d, Y" }}</p>
+                        <p class="text-md text-gray-500 font-bold">Duration: {{ service.duration }}</p>
+                    </div>
+                    <p class="text-2xl font-bold text-primary">${{ service.price }}</p>
+                </div>
+
+                <!-- Provider Profile -->
+                <div class="flex items-center mt-10">
+                    <a href="{% url 'profile' service.provider.profile.user.username %}" class="flex items-center gap-4">
+                        <div class="avatar">
+                            <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                                {% if service.provider.profile.avatar %}
+                                    <img src="{{ service.provider.profile.avatar.url }}" alt="{{ service.provider.profile.user.username }}">
+                                {% else %}
+                                    <span class="text-white text-xl font-semibold bg-primary w-full h-full flex items-center justify-center">
+                                        {{ service.provider.profile.user.username|slice:":1"|upper }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold">{{ service.provider.profile.user.username }}</h2>
+                            <div class="text-gray-500 text-sm">
+                                <span>Average Rating:</span>
+                                <span class="text-sm">{{ avg_rating|floatformat:"1" }}</span>
+                            </div>
+                            <p class="text-sm text-gray-500">Reviews: {{ service.provider.reviews.count }}</p>
+                        </div>
+                    </a>
+                    <!-- Book Now Button triggers modal -->
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'login' %}" class="btn btn-primary text-white ml-auto">Login to Book</a>
+                    {% elif user.profile and not user.profile.is_provider and user != service.provider.profile.user %}
+                        <button onclick="document.getElementById('bookingModal').classList.remove('hidden')" class="btn btn-primary text-white ml-auto">Book Now</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div id="bookingModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-base-200 rounded-lg w-[30rem] max-h-[90vh] p-6 overflow-y-auto relative">
+            <h2 class="text-2xl font-bold mb-4">Book This Service</h2>
+            <form method="POST" action="{% url 'book_service' service.id %}">
+                {% csrf_token %}
+
+                <!-- Scheduled Time Input -->
+                <div class="form-control mb-4">
+                    <label for="scheduled_time" class="label font-semibold">Scheduled Time</label>
+                    <input
+                        type="datetime-local"
+                        id="scheduled_time"
+                        name="scheduled_time"
+                        class="input input-bordered w-full"
+                        required>
+                </div>
+
+                <!-- Additional Details Input -->
+                <div class="form-control mb-4">
+                    <label for="details" class="label font-semibold">Details</label>
+                    <textarea
+                        id="details"
+                        name="details"
+                        class="textarea textarea-bordered w-full"
+                        rows="4"
+                        required></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type="submit" class="btn btn-primary text-white">Book Now</button>
+                </div>
+            </form>
+
+            <!-- Close Button -->
+            <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                    onclick="document.getElementById('bookingModal').classList.add('hidden')">
+                ✕
+            </button>
+        </div>
+    </div>
+{% endblock %}

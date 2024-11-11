@@ -1,0 +1,495 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="p-4">
+
+        <!-- Profile Header -->
+        <div class="bg-base-200 rounded-lg p-6">
+            <!-- Profile Header -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="avatar">
+                        <div class="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                            {% if profile.avatar %}
+                                <img src="{{ profile.avatar.url }}" alt="{{ profile.user.username }}">
+                            {% else %}
+                                <span class="text-white text-2xl font-semibold bg-primary w-full h-full flex items-center justify-center">
+                                    {{ profile.user.username|slice:":1"|upper }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold">{{ profile.user.username }}</h1>
+                        <p class="text-sm text-gray-500">{{ profile.location|default:"Location not specified" }}</p>
+
+                        <!-- Average Rating -->
+                        {% if profile.is_provider %}
+                            {# If the user has ratings, display the average rating #}
+                            {% if avg_rating %}
+                                <div class="flex items-center mt-2">
+                                    <span class="text-yellow-500 text-xl font-semibold">{{ avg_rating|floatformat:1 }}/5</span>
+                                    <div class="flex ml-2">
+                                        {% for i in "12345" %}
+                                            {% if i <= avg_rating|floatformat:0 %}
+                                                <span class="text-yellow-500 text-lg">★</span>
+                                            {% else %}
+                                                <span class="text-gray-300 text-lg">★</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="text-gray-500 text-sm mt-2">No ratings yet</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- User Actions -->
+                <div class="flex gap-2">
+                    {% if user.is_authenticated and user == profile.user %}
+                        <button class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.remove('hidden')">Edit Profile</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Balance Section -->
+            {% if user.is_authenticated and user == profile.user %}
+                <div class="bg-base-300 rounded-lg p-4 mt-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-bold">Your Balance</h2>
+                        <p class="text-primary font-semibold text-xl">${{ profile.wallet|floatformat:2 }}</p>
+                    </div>
+                    <button class="btn btn-primary text-white" onclick="document.getElementById('addBalanceModal').classList.remove('hidden')">
+                        Add Balance
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Edit Profile Modal -->
+        <div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
+            <div class="bg-base-200 rounded-lg w-[30rem] p-6 relative">
+                <h2 class="text-2xl font-bold mb-4">Edit Profile</h2>
+
+                <form method="POST" action="{% url 'edit_profile' profile.user.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Profile Image Upload -->
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">Profile Image</label>
+                        <div class="flex items-center gap-4">
+                            <input type="file" name="avatar" accept="image/*" class="file-input file-input-bordered w-full">
+                            {% if profile.avatar %}
+                                <img src="{{ profile.avatar.url }}" alt="Current Profile Image" class="w-16 h-16 rounded-full">
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- About Me Section -->
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">About Me</label>
+                        <textarea name="about" class="textarea textarea-bordered w-full" placeholder="Tell us about yourself">{{ profile.about|default_if_none:"" }}</textarea>
+                    </div>
+
+                    <!-- Social Media Links Section -->
+                    <h3 class="text-xl font-semibold mt-4">Social Media Links</h3>
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">Contact Email</label>
+                        <input type="email" name="contact_email" value="{{ profile.contact_email|default_if_none:'' }}" placeholder="Enter your email" class="input input-bordered w-full">
+                    </div>
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">LinkedIn</label>
+                        <input type="url" name="linkedin" value="{{ profile.linkedin|default_if_none:'' }}" placeholder="https://linkedin.com/in/username" class="input input-bordered w-full">
+                    </div>
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">Twitter</label>
+                        <input type="url" name="twitter" value="{{ profile.twitter|default_if_none:'' }}" placeholder="https://twitter.com/username" class="input input-bordered w-full">
+                    </div>
+                    <div class="form-control mb-4">
+                        <label class="label font-semibold">Facebook</label>
+                        <input type="url" name="facebook" value="{{ profile.facebook|default_if_none:'' }}" placeholder="https://facebook.com/username" class="input input-bordered w-full">
+                    </div>
+
+                    <!-- Save & Cancel Buttons -->
+                    <div class="flex justify-end gap-2">
+                        <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.add('hidden')">Cancel</button>
+                        <button type="submit" class="btn btn-primary text-white">Save Changes</button>
+                    </div>
+                </form>
+
+                <!-- Close Modal Button -->
+                <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800" onclick="document.getElementById('editModal').classList.add('hidden')">✕</button>
+            </div>
+        </div>
+
+        <!-- Balance Modal -->
+        {% if user.is_authenticated and user == profile.user %}
+            <div id="addBalanceModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
+                <div class="bg-base-200 rounded-lg w-[30rem] p-6 relative">
+                    <h2 class="text-2xl font-bold mb-4">Add Balance</h2>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="{{ add_balance_form.amount.id_for_label }}" class="font-semibold">Amount:</label>
+                            {{ add_balance_form.amount }}
+                        </div>
+
+                        <div class="flex justify-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('addBalanceModal').classList.add('hidden')">
+                                Cancel
+                            </button>
+                            <button type="submit" name="add_balance" class="btn btn-primary text-white">Add</button>
+                        </div>
+                    </form>
+
+                    <button
+                            class="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                            onclick="document.getElementById('addBalanceModal').classList.add('hidden')"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+
+
+        <!-- Profile Stats -->
+        {% if profile.contact_email or profile.linkedin or profile.twitter or profile.facebook %}
+            <div class="mt-6">
+                <h2 class="text-2xl font-semibold">Contact & Social Links</h2>
+                <div class="flex gap-4 mt-2">
+                    {% if profile.contact_email %}
+                        <a href="mailto:{{ profile.contact_email }}" class="text-blue-500">Email</a>
+                    {% endif %}
+                    {% if profile.linkedin %}
+                        <a href="{{ profile.linkedin }}" target="_blank" class="text-blue-500">LinkedIn</a>
+                    {% endif %}
+                    {% if profile.twitter %}
+                        <a href="{{ profile.twitter }}" target="_blank" class="text-blue-500">Twitter</a>
+                    {% endif %}
+                    {% if profile.facebook %}
+                        <a href="{{ profile.facebook }}" target="_blank" class="text-blue-500">Facebook</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Profile About Section -->
+        {% if is_provider %}
+            <div class="mt-6">
+                <h2 class="text-2xl font-semibold mt-6">About Me</h2>
+                {% if profile.provider.about %}
+                    <p style="white-space: pre-wrap;" class="text-justify">{{ profile.provider.about }}</p>
+                {% else %}
+                    <p class="text-gray-500 mt-2">This user has not added any information about themselves yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- List of Services (if provider) -->
+            <h2 class="text-2xl font-semibold mt-6">Services Offered</h2>
+            {% if services|length == 0 %}
+                <p class="text-gray-500 mt-2">This user has not added any services yet.</p>
+            {% endif %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                {% for service in services %}
+                    <a href="{% url 'service_detail' service.id %}" class="group">
+                        <div class="card bg-base-100 shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                            {% if service.image %}
+                                <img src="{{ service.image.url }}" alt="{{ service.title }}" class="w-full h-40 object-cover">
+                            {% else %}
+                                <div class="w-full h-40 bg-gray-200 flex items-center justify-center">
+                                    <span class="text-gray-500">No Image</span>
+                                </div>
+                            {% endif %}
+                            <div class="border-b px-4 py-3 flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-500 text-sm">{{ service.created_at|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-primary font-semibold">${{ service.price|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="text-lg font-semibold">{{ service.title }}</h3>
+                                <p class="text-sm text-gray-500">{{ service.description|truncatewords:15 }}</p>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if is_provider %}
+            <!-- Statistics Section -->
+            <div class="mt-6">
+                <h2 class="text-2xl font-semibold">Statistics</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                    <!-- Total Services Offered -->
+                    <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold">Total Services Offered</h3>
+                        <p class="text-3xl font-semibold">{{ profile.provider.total_services }}</p>
+                    </div>
+
+                    <!-- Total Services Booked -->
+                    <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold">Total Services Booked</h3>
+                        <p class="text-3xl font-semibold">{{ profile.provider.total_bookings }}</p>
+                    </div>
+
+                    <!-- Completed Services -->
+                    <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold">Completed Services</h3>
+                        <p class="text-3xl font-semibold">{{ profile.provider.completed_bookings }}</p>
+                    </div>
+
+                    <!-- Cancelled Services -->
+                    <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold">Cancelled Services</h3>
+                        <p class="text-3xl font-semibold">{{ profile.provider.cancelled_bookings }}</p>
+                    </div>
+
+                    <!-- In Progress Services -->
+                    <div class="bg-base-200 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold">In Progress Services</h3>
+                        <p class="text-3xl font-semibold">{{ profile.provider.in_progress_bookings }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+
+        {% if user.is_authenticated and user == profile.user and booking_history %}
+                <div class="mt-6">
+                    <h2 class="text-2xl font-semibold">Booking History</h2>
+                    <div class="space-y-4 mt-4">
+                        {% for booking in booking_history %}
+                            <div class="bg-base-200 rounded-lg p-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h3 class="font-semibold">{{ booking.service.title }}</h3>
+                                        <p class="text-sm text-gray-500">Scheduled time: {{ booking.scheduled_time|date:"d M Y, H:i" }}</p>
+                                        <p class="text-sm text-gray-500">Details: {{ booking.details }}</p>
+                                        <p class="text-sm text-gray-500">Status: {{ booking.get_status_display }}</p>
+                                        <p class="text-sm text-gray-500">
+                                            {% if booking.accepted_at %}
+                                                Approved: {{ booking.accepted_at|date:"d M Y, H:i" }}
+                                            {% else %}
+                                                Approved: Not yet.
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-primary font-semibold">${{ booking.service.price|floatformat:2 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+            {% endif %}
+
+
+        <!-- Reviews Section -->
+        {% if is_provider %}
+            <div class="form-control mb-8 mt-6 p-6 bg-base-200 rounded-lg">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-2xl font-semibold">User Reviews</h3>
+                    {% if user.is_authenticated and user != profile.user %}
+                        <button class="btn btn-primary text-white" onclick="document.getElementById('reviewModal').classList.remove('hidden')">
+                            Add Review
+                        </button>
+                    {% endif %}
+                </div>
+
+                <div class="space-y-4 mt-4">
+                    {% for review in reviews %}
+                        <div class="bg-white p-4 rounded-lg shadow-md">
+                            <div class="flex items-center justify-between mb-2">
+                                <a class="flex items-center gap-2" href="{% url 'profile' review.reviewer.user.username %}">
+                                    {% if review.reviewer.user.profile.avatar %}
+                                        <img src="{{ review.reviewer.user.profile.avatar.url }}" alt="{{ review.reviewer.user.username }}" class="w-8 h-8 rounded-full">
+                                    {% else %}
+                                        <span class="text-white text-xl font-semibold bg-primary w-8 h-8 flex items-center justify-center rounded-full">
+                                            {{ review.reviewer.user.username|slice:":1"|upper }}
+                                        </span>
+                                    {% endif %}
+                                    <span class="font-semibold">{{ review.reviewer.user.username }}</span>
+                                </a>
+                                <div class="flex items-center mt-2">
+                                    <span class="text-yellow-500 text-xl font-semibold">{{ review.rating }}/5</span>
+                                    <div class="flex ml-2">
+                                        {% for i in "12345" %}
+                                            {% if i <= review.rating|floatformat:0 %}
+                                                <span class="text-yellow-500 text-lg">★</span>
+                                            {% else %}
+                                                <span class="text-gray-300 text-lg">★</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="mb-2">{{ review.comment }}</p>
+                            <small class="text-gray-500">Reviewed on {{ review.created_at|date:"M d, Y" }}</small>
+                        </div>
+                    {% empty %}
+                        <p class="text-gray-500">No reviews yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Edit Profile Modal -->
+        <div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-base-200 rounded-lg w-[30rem] max-h-[90vh] p-6 overflow-y-auto relative">
+                <h2 class="text-2xl font-bold mb-4">Edit Profile</h2>
+
+                <!-- Check if the user is a provider or not -->
+                {% if is_provider %}
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+
+                        <!-- Avatar -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">Profile Image</label>
+                            <div class="flex items-center gap-4">
+                                {{ provider_form.avatar }}
+                                {% if profile.avatar %}
+                                    <img src="{{ profile.avatar.url }}" alt="Current Profile Image" class="w-16 h-16 rounded-full">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.phone.label }}</label>
+                            {{ provider_form.phone }}
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.location.label }}</label>
+                            {{ provider_form.location }}
+                        </div>
+
+                        <!-- About -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.about.label }}</label>
+                            {{ provider_form.about }}
+                        </div>
+
+                        <!-- Contact Email -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.contact_email.label }}</label>
+                            {{ provider_form.contact_email }}
+                        </div>
+
+                        <!-- LinkedIn -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.linkedin.label }}</label>
+                            {{ provider_form.linkedin }}
+                        </div>
+
+                        <!-- Twitter -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.twitter.label }}</label>
+                            {{ provider_form.twitter }}
+                        </div>
+
+                        <!-- Facebook -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ provider_form.facebook.label }}</label>
+                            {{ provider_form.facebook }}
+                        </div>
+
+                        <!-- Save & Cancel Buttons -->
+                        <div class="flex justify-end gap-2">
+                            <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.add('hidden')">Cancel</button>
+                            <button type="submit" name="update_provider" class="btn btn-primary text-white">Save Changes</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Profile Image Upload -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">Profile Image</label>
+                            <div class="flex items-center gap-4">
+                                {{ profile_form.avatar }}
+                                {% if profile.avatar %}
+                                    <img src="{{ profile.avatar.url }}" alt="Current Profile Image" class="w-16 h-16 rounded-full">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ profile_form.phone.label }}</label>
+                            {{ profile_form.phone }}
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-control mb-4">
+                            <label class="label font-semibold">{{ profile_form.location.label }}</label>
+                            {{ profile_form.location }}
+                        </div>
+
+                        <!-- Save & Cancel Buttons -->
+                        <div class="flex justify-end gap-2">
+                            <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('editModal').classList.add('hidden')">Cancel</button>
+                            <button type="submit" name="update_profile" class="btn btn-primary text-white">Save Changes</button>
+                        </div>
+                    </form>
+                {% endif %}
+                <!-- Close Modal Button -->
+                <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-800" onclick="document.getElementById('editModal').classList.add('hidden')">✕</button>
+            </div>
+        </div>
+
+        <!-- Add Review Modal -->
+        <div id="reviewModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-base-200 rounded-lg w-[30rem] max-h-[90vh] p-6 overflow-y-auto relative">
+                <h2 class="text-2xl font-bold mb-4">Leave a Review</h2>
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <!-- Custom Rating Input -->
+                    <div class="form-group">
+                        <label for="id_rating" class="font-semibold">Rate:</label>
+                        <div class="rating rating-sm rating-half">
+                            <input type="radio" name="rating" value="0.5" class="mask mask-star-2 mask-half-1 bg-green-500" />
+                            <input type="radio" name="rating" value="1" class="mask mask-star-2 mask-half-2 bg-green-500" />
+                            <input type="radio" name="rating" value="1.5" class="mask mask-star-2 mask-half-1 bg-green-500" />
+                            <input type="radio" name="rating" value="2" class="mask mask-star-2 mask-half-2 bg-green-500" />
+                            <input type="radio" name="rating" value="2.5" class="mask mask-star-2 mask-half-1 bg-green-500" />
+                            <input type="radio" name="rating" value="3" class="mask mask-star-2 mask-half-2 bg-green-500" />
+                            <input type="radio" name="rating" value="3.5" class="mask mask-star-2 mask-half-1 bg-green-500" />
+                            <input type="radio" name="rating" value="4" class="mask mask-star-2 mask-half-2 bg-green-500" />
+                            <input type="radio" name="rating" value="4.5" class="mask mask-star-2 mask-half-1 bg-green-500" />
+                            <input type="radio" name="rating" value="5" class="mask mask-star-2 mask-half-2 bg-green-500" checked="checked" />
+                        </div>
+                    </div>
+
+                    <!-- Comment Input -->
+                    <div class="form-group">
+                        <label class="font-semibold">{{ review_form.comment.label_tag }}</label>
+                        {{ review_form.comment }}
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex justify-end gap-2">
+                        <button type="button" class="btn btn-secondary text-white" onclick="document.getElementById('reviewModal').classList.add('hidden')">
+                            Cancel
+                        </button>
+                        <button type="submit" name="add_review" class="btn btn-primary text-white">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

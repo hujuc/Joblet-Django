@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <div class="p-4">
+        <h1 class="text-3xl font-bold mb-6">Categories</h1>
+
+        <!-- Add New Category Button -->
+        <div class="flex justify-start mb-4">
+            <button onclick="document.getElementById('addCategoryModal').classList.remove('hidden')" class="btn btn-primary text-white">
+                Add New Category
+            </button>
+        </div>
+
+        <!-- Existing Categories -->
+        <div class="bg-base-300 rounded-lg p-4">
+            <h2 class="text-xl font-bold mb-4">Existing Categories</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for category in categories %}
+                    <div class="card card-compact bg-base-200 shadow-md p-4">
+                        <h3 class="text-lg font-bold">{{ category.name }}</h3>
+                        <p class="text-sm text-gray-500">{{ category.description }}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-gray-500">No categories available.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Category -->
+    <div id="addCategoryModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-base-200 rounded-lg p-6 w-96">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Add a New Category</h2>
+                <button onclick="document.getElementById('addCategoryModal').classList.add('hidden')" class="btn btn-sm btn-circle">
+                    ✕
+                </button>
+            </div>
+
+            <form method="POST" action="{% url 'categories' %}">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary text-white w-full">Add Category</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+

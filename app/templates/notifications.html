@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="p-4">
+    <h1 class="text-2xl font-bold mb-4">Notifications</h1>
+
+    {% for notification in notifications %}
+        <div class="card shadow-md mb-4 {% if notification.read %}bg-gray-100{% else %}bg-blue-100{% endif %}">
+            <div class="card-body">
+                <p class="{% if not notification.read %}font-bold{% endif %}">
+                    {{ notification.message }}
+                    {% if notification.count > 1 %}
+                        ({{ notification.count }})
+                    {% endif %}
+                </p>
+                <p>{{ notification.latest_created_at }}</p>
+
+                <!-- Link para acessar o assunto da notificação, caso exista -->
+                {% if notification.url %}
+                    <a href="{{ notification.url }}" class="text-primary font-bold"><u>Access</u></a>
+                {% else %}
+                    <p class="text-gray-500">No subject found.</p>
+                {% endif %}
+
+                <!-- Botão para marcar notificação como lida -->
+                {% if not notification.read %}
+                    <form action="{% url 'mark_notification_as_read' notification.representative_id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="text-primary font-bold"><u>Mark as Read</u></button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-gray-500">No notifications found.</p>
+    {% endfor %}
+</div>
+{% endblock %}
