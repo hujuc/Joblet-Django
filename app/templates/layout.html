@@ -101,10 +101,12 @@
                                 <!-- Profile Section -->
                                 <span class="text-white mr-2">Welcome, {{ user.username }}</span>
                                 <div class="relative" id="profile-dropdown">
-                                    <!-- Avatar -->
                                     <button tabindex="0" id="profile-btn" class="btn btn-circle bg-gray-300 text-black">
                                         {% if user.profile.avatar %}
-                                            <img src="{{ user.profile.avatar.url }}" class="rounded-full" alt="avatar">
+                                            <img
+                                                src="{{ user.profile.avatar.url }}"
+                                                class="rounded-full w-full h-full object-cover"
+                                                alt="{{ user.username }}">
                                         {% else %}
                                             <span class="text-lg font-semibold">{{ user.username|slice:":1"|upper }}</span>
                                         {% endif %}
