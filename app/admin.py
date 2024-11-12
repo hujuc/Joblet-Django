@@ -31,10 +31,8 @@ class ServiceAdmin(admin.ModelAdmin):
     list_display = ('title', 'provider', 'price', 'approval', 'is_active')
     inlines = [BookingInline]
     search_fields = ('service__title', 'customer__user__username', 'status')
-    #list_filter = ('status', 'created_at')
     ordering = ('-created_at',)
     actions = ['approve_services']
-    #filter_horizontal = ('category',)
 
     def save_model(self, request, obj, form, change):
         # Combine date and time for scheduled_time

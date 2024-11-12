@@ -83,9 +83,6 @@
             {% endfor %}
         </div>
     </div>
-
-
-
 </div>
 
 <!-- Add Service Modal -->
@@ -173,7 +170,6 @@
 
 <script>
     function openEditServiceModal(serviceId) {
-        // Populate edit modal with service data from the server
         fetch(`/myservices/edit/${serviceId}/json`)
             .then(response => response.json())
             .then(data => {

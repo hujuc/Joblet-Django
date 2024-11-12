@@ -41,8 +41,8 @@ class Provider(models.Model):
     def __str__(self):
         return f"Provider: {self.profile.user.username}"
 
-    # Statistics functions
 
+    # Statistics functions
     def total_services(self):
         """Returns the total number of services offered by the provider."""
         return self.services.count()
@@ -87,7 +87,6 @@ class Provider(models.Model):
         return Booking.objects.filter(service__provider=self, status='completed').count()
 
 
-
 class Chat(models.Model):
     booking = models.OneToOneField(
         'Booking',
@@ -113,6 +112,7 @@ class Message(models.Model):
 
     def __str__(self):
         return f"From {self.sender.user.username} to {self.recipient.user.username}"
+
 
 class Review(models.Model):
     provider = models.ForeignKey(Provider, related_name='reviews', on_delete=models.CASCADE)
@@ -144,6 +144,7 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
 class Service(models.Model):
     provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='services')
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -158,6 +159,7 @@ class Service(models.Model):
 
     def __str__(self):
         return self.title
+
 
 class Booking(models.Model):
     STATUS_CHOICES = [
@@ -188,6 +190,7 @@ class Booking(models.Model):
         super().save(*args, **kwargs)
         if self.status == 'in_progress' and not hasattr(self, 'chat'):
             Chat.objects.create(booking=self)
+
 
 class Notification(models.Model):
     recipient = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='notifications')

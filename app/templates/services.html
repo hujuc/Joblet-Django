@@ -2,7 +2,7 @@
 
 {% block content %}
     <div class="flex mt-6">
-        <!-- Sidebar com os filtros (mantido igual) -->
+        <!-- Sidebar com os filtros -->
         <div class="w-1/4 bg-base-300 p-6 rounded-l-lg overflow-y-auto" style="height: calc(100vh - 140px)">
             <h2 class="text-xl font-bold mb-4">Filters</h2>
             <form method="GET" action="{% url 'services' %}" class="space-y-6">
@@ -153,40 +153,39 @@
         </div>
     </div>
 <script>
-// Toggle dropdown visibility
-function toggleDropdown(event) {
-    event.stopPropagation(); // Prevent event propagation
-    const dropdownMenu = document.getElementById('dropdownMenu');
-    dropdownMenu.classList.toggle('hidden');
-}
-
-// Select category and update the display text
-function selectCategory(event, name, iconClass, id) {
-    event.preventDefault(); // Prevent default anchor behavior
-
-    // Update the selected category visually
-    const selectedCategory = document.getElementById('selectedCategory');
-    selectedCategory.innerHTML = `<i class="${iconClass}"></i> ${name}`;
-
-    // Close the dropdown menu
-    const dropdownMenu = document.getElementById('dropdownMenu');
-    dropdownMenu.classList.add('hidden');
-
-    // Update the hidden input field to reflect the selected category
-    const categoryInput = document.getElementById('category');
-    if (categoryInput) {
-        categoryInput.value = id;
+    // Toggle dropdown visibility
+    function toggleDropdown(event) {
+        event.stopPropagation();
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        dropdownMenu.classList.toggle('hidden');
     }
-}
 
-// Close the dropdown when clicking outside
-document.addEventListener('click', function () {
-    const dropdownMenu = document.getElementById('dropdownMenu');
-    if (!dropdownMenu.classList.contains('hidden')) {
+    // Select category and update the display text
+    function selectCategory(event, name, iconClass, id) {
+        event.preventDefault();
+
+        // Update the selected category visually
+        const selectedCategory = document.getElementById('selectedCategory');
+        selectedCategory.innerHTML = `<i class="${iconClass}"></i> ${name}`;
+
+        // Close the dropdown menu
+        const dropdownMenu = document.getElementById('dropdownMenu');
         dropdownMenu.classList.add('hidden');
-    }
-});
 
+        // Update the hidden input field to reflect the selected category
+        const categoryInput = document.getElementById('category');
+        if (categoryInput) {
+            categoryInput.value = id;
+        }
+    }
+
+    // Close the dropdown when clicking outside
+    document.addEventListener('click', function () {
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        if (!dropdownMenu.classList.contains('hidden')) {
+            dropdownMenu.classList.add('hidden');
+        }
+    });
 </script>
 {% endblock %}
 
