@@ -10,13 +10,10 @@
     <h3 class="text-lg font-semibold">Booking Details</h3>
     <p class="text-sm"><strong>Service:</strong> {{ booking.service.title }}</p>
     <p class="text-sm"><strong>Service Category:</strong> {{ booking.service.category.name }}</p>
-{#    <p class="text-sm"><strong>Service Provider:</strong> {{ booking.service.provider.profile.user.username }}</p>#}
-{#    <p class="text-sm"><strong>Customer:</strong> {{ booking.customer.user.username }}</p>#}
     <p class="text-sm"><strong>Scheduled Time:</strong> {{ booking.scheduled_time|date:"M d, Y H:i" }}</p>
     <p class="text-sm"><strong>Details:</strong> {{ booking.details }}</p>
 </div>
 
-<!-- Avatar of the other user -->
 <!-- Avatar of the other user -->
 <div class="flex items-center gap-4 mb-6">
     <!-- Avatar -->
@@ -43,17 +40,15 @@
     </div>
 
     <!-- Username -->
-    <div>
-        {% if user.profile == booking.customer %}
-            <a href="{% url 'profile' booking.service.provider.profile.user.username %}" class="text-xl font-bold hover:underline">
-                {{ booking.service.provider.profile.user.username }}
-            </a>
-        {% else %}
-            <a href="{% url 'profile' booking.customer.user.username %}" class="text-xl font-bold hover:underline">
-                {{ booking.customer.user.username }}
-            </a>
-        {% endif %}
-    </div>
+    {% if user.profile == booking.customer %}
+        <a href="{% url 'profile' booking.service.provider.profile.user.username %}" class="text-xl font-bold hover:underline">
+            {{ booking.service.provider.profile.user.username }}
+        </a>
+    {% else %}
+        <a href="{% url 'profile' booking.customer.user.username %}" class="text-xl font-bold hover:underline">
+            {{ booking.customer.user.username }}
+        </a>
+    {% endif %}
 </div>
 
 <!-- Chat Messages -->

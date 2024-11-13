@@ -32,7 +32,6 @@
                                         </a>
                                     </li>
 
-                                    <!-- Separator or Label -->
                                     <li class="py-2 text-base-300 text-sm font-semibold uppercase tracking-wide">
                                         Categories
                                     </li>
@@ -102,10 +101,12 @@
                                 <!-- Profile Section -->
                                 <span class="text-white mr-2">Welcome, {{ user.username }}</span>
                                 <div class="relative" id="profile-dropdown">
-                                    <!-- Profile Avatar -->
                                     <button tabindex="0" id="profile-btn" class="btn btn-circle bg-gray-300 text-black">
                                         {% if user.profile.avatar %}
-                                            <img src="{{ user.profile.avatar.url }}" class="rounded-full" alt="avatar">
+                                            <img
+                                                src="{{ user.profile.avatar.url }}"
+                                                class="rounded-full w-full h-full object-cover"
+                                                alt="{{ user.username }}">
                                         {% else %}
                                             <span class="text-lg font-semibold">{{ user.username|slice:":1"|upper }}</span>
                                         {% endif %}
@@ -157,14 +158,11 @@
     document.addEventListener('click', function (event) {
         const profileMenu = document.getElementById('profile-menu');
         const profileButton = document.getElementById('profile-btn');
-        const notificationButton = document.getElementById('notification-btn');
 
-        // If clicking outside the profile menu, hide it
         if (!profileMenu.contains(event.target) && !profileButton.contains(event.target)) {
             profileMenu.classList.add('hidden');
         }
 
-        // Toggle profile menu visibility
         if (profileButton.contains(event.target)) {
             profileMenu.classList.toggle('hidden');
         }

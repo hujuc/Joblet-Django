@@ -7,7 +7,7 @@
         <form method="POST" class="form-control space-y-6">
             {% csrf_token %}
             
-            <!-- Username Field with Custom Error Display -->
+            <!-- Username Field with Error Display -->
             <div class="form-group">
                 <label class="text-black" for="{{ form.username.id_for_label }}">Username</label>
                 {{ form.username }}
@@ -20,7 +20,7 @@
                 {% endif %}
             </div>
             
-            <!-- Password Field with Custom Error Display -->
+            <!-- Password Field with Error Display -->
             <div class="form-group">
                 <label class="text-black" for="{{ form.password.id_for_label }}">Password</label>
                 {{ form.password }}
@@ -33,7 +33,7 @@
                 {% endif %}
             </div>
             
-            <!-- Non-Field Errors (e.g., incorrect login) -->
+            <!-- Non-Field Errors (incorrect login, ...) -->
             {% if form.non_field_errors %}
                 <div class="text-red-500 text-sm mt-1">
                     {% for error in form.non_field_errors %}

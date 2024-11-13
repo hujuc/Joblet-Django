@@ -141,17 +141,15 @@ def edit_service(request, service_id):
     categories = Category.objects.all()
 
     if request.method == 'POST':
-        # Update fields with POST data
         service.title = request.POST.get('title')
         service.description = request.POST.get('description')
         service.price = request.POST.get('price')
         service.category_id = request.POST.get('category')
 
-        # Check if a new image was uploaded
         if 'image' in request.FILES:
-            service.image = request.FILES['image']  # Update image with the new file
+            service.image = request.FILES['image']
 
-        service.save()  # Save the service with updated fields
+        service.save()
         return redirect('myservices')
 
     return render(request, 'myservices.html', {'service': service, 'categories': categories})
@@ -162,7 +160,6 @@ def edit_service(request, service_id):
 def add_service(request):
     categories = Category.objects.all()
     if request.method == 'POST':
-        # Retrieve form data
         title = request.POST.get('title')
         description = request.POST.get('description')
         price = request.POST.get('price')
@@ -185,8 +182,8 @@ def add_service(request):
             price=price,
             duration=duration,
             category_id=category_id,
-            is_active=True,  # Set to True to indicate the service is initially active
-            approval='pending approval',  # Set the initial approval status to "Pending Approval"
+            is_active=True,
+            approval='pending approval',
             image=image
         )
         service.save()
@@ -208,10 +205,10 @@ def get_service_data(request, service_id):
     data = {
         'title': service.title,
         'description': service.description,
-        'category': service.category.id,  # Current category ID of the service
+        'category': service.category.id,
         'price': str(service.price),
         'image': service.image.url if service.image else None,
-        'categories': [{'id': cat.id, 'name': cat.name} for cat in categories],  # Send all categories
+        'categories': [{'id': cat.id, 'name': cat.name} for cat in categories],
     }
     return JsonResponse(data)
 
@@ -268,18 +265,18 @@ def leaderboard(limit=5):
     return (
         Provider.objects.annotate(
             total_sales=Count(
-                'services__booking',  # Relacionamento de Provider -> Service -> Booking
+                'services__booking',
                 filter=Q(services__booking__status='completed')
             )
         )
-        .filter(total_sales__gt=0)  # Somente providers com vendas
+        .filter(total_sales__gt=0)
         .order_by('-total_sales')[:limit]
     )
 
 def home(request):
     total_users = User.objects.count()
     total_services = Service.objects.count()
-    total_reviews = Booking.objects.filter(status='completed').count()  # Assuming completed bookings have reviews
+    total_reviews = Booking.objects.filter(status='completed').count()
     total_revenue = Booking.objects.filter(status='completed').aggregate(total=Sum('service__price'))['total'] or 0
     total_providers = Provider.objects.count()
     total_services_provided = Booking.objects.filter(status='completed').count()
@@ -291,7 +288,7 @@ def home(request):
         'total_revenue': total_revenue,
         'total_providers': total_providers,
         'total_services_provided': total_services_provided,
-        'recent_bookings': Booking.objects.order_by('-created_at')[:5],  # Example
+        'recent_bookings': Booking.objects.order_by('-created_at')[:5],
         'providers': Provider.objects.annotate(total_sales=Count('services__booking')).order_by('-total_sales')[:3],
     }
 
@@ -300,7 +297,7 @@ def home(request):
 def myorders(request):
     # Ensure the user is authenticated
     if not request.user.is_authenticated:
-        return redirect('login')  # Redirect to login if the user is not logged in
+        return redirect('login')
 
     # Get bookings grouped by status
     pending_bookings = Booking.objects.filter(customer=request.user.profile, status='pending').select_related('service', 'service__provider')
@@ -342,18 +339,16 @@ def services(request):
 
     # Apply sorting
     if sort_option == '1':  # Most Popular
-        services = services.order_by('-popularity')  # Ensure you have a popularity field or adjust accordingly
+        services = services.order_by('-popularity')
     elif sort_option == '2':  # Price: Low to High
         services = services.order_by('price')
     elif sort_option == '3':  # Price: High to Low
         services = services.order_by('-price')
     else:  # Most Recent
-        services = services.order_by('-created_at')  # Ensure you have a created_at field or adjust accordingly
+        services = services.order_by('-created_at')
 
-    # Annotate each service with the average rating of its provider
     services = services.annotate(avg_rating=Avg('provider__reviews__rating'))
 
-    # Pass categories and filtered services to template
     categories = Category.objects.all()
     context = {
         'title': 'Services',
@@ -382,14 +377,10 @@ def service_detail(request, service_id):
 def booking(request):
     return render(request, 'booking.html')
 
-def about(request):
-    return render(request, 'about.html')
-
 def profile(request, username):
     # Get the user's profile
     user_profile = get_object_or_404(Profile, user__username=username)
 
-    # Initialize forms
     profile_form = ProfileForm(instance=user_profile)
     provider_form = None
     if hasattr(user_profile, 'provider'):
@@ -399,16 +390,14 @@ def profile(request, username):
 
     booking_history = Booking.objects.filter(customer=user_profile).select_related('service').order_by('-created_at')
 
-    # Get the provider instance if it exists
     provider = user_profile.provider if hasattr(user_profile, 'provider') else None
     is_provider = provider is not None
     approved_services = provider.services.filter(approval='approved') if is_provider else None
     avg_rating = provider.reviews.aggregate(Avg('rating'))['rating__avg'] if is_provider else None
     reviews = provider.reviews.all() if is_provider else None
 
-    # Handle form submissions
     if request.method == 'POST':
-        if 'update_profile' in request.POST:  # Profile Form
+        if 'update_profile' in request.POST:
             profile_form = ProfileForm(request.POST, request.FILES, instance=user_profile)
             if profile_form.is_valid():
                 profile_form.save()
@@ -436,7 +425,7 @@ def profile(request, username):
 
                 return redirect('profile', username=username)
 
-        elif 'add_balance' in request.POST:  # Add Balance Form
+        elif 'add_balance' in request.POST:
             add_balance_form = AddBalanceForm(request.POST)
             if add_balance_form.is_valid():
                 amount = add_balance_form.cleaned_data['amount']
@@ -444,7 +433,6 @@ def profile(request, username):
                 user_profile.save()
                 return redirect('profile', username=username)
 
-    # Pass context to the template
     context = {
         'profile': user_profile,
         'is_provider': is_provider,
@@ -499,7 +487,7 @@ def chat_view(request, booking_id):
     context = {
         'chat': chat,
         'booking': booking,
-        'chat_messages': chat_messages,  # Updated variable name
+        'chat_messages': chat_messages,
         'form': form,
     }
     return render(request, 'chat.html', context)
@@ -551,7 +539,7 @@ def edit_profile(request, user_id):
 @login_required
 def book_service(request, service_id):
     service = get_object_or_404(Service, id=service_id, is_active=True, approval='approved')
-    user_profile = request.user.profile  # Assuming a one-to-one relationship between User and Profile
+    user_profile = request.user.profile
 
     if request.method == "POST":
         form = BookingForm(request.POST)
@@ -568,7 +556,6 @@ def book_service(request, service_id):
                 messages.error(request, "You don't have enough balance to book this service. Please add funds to your wallet.")
                 return redirect('service_detail', service_id=service_id)
 
-            # Deduct the service price from the user's wallet
             user_profile.wallet -= service.price
             user_profile.save()
 
@@ -666,7 +653,11 @@ def mark_notification_as_read(request, notification_id):
     notification.read = True
     notification.save()
     messages.success(request, "Notification marked as read.")
-    return redirect('notifications')
+
+    # Redirect to the provided URL if it exists
+    redirect_url = request.POST.get('redirect', 'notifications')
+    return redirect(redirect_url)
+
 
 @login_required
 def pending_bookings(request, service_id):
@@ -684,10 +675,10 @@ def in_progress_bookings(request, service_id):
 def accept_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, service__provider__profile__user=request.user)
 
-    # Update the booking status and approval flag
+    # Update the booking status and approval
     booking.accepted_at = timezone.now()
     booking.status = 'in_progress'
-    booking.save()  # Save the changes
+    booking.save()
 
     Notification.objects.create(
         recipient=booking.customer,
@@ -715,7 +706,7 @@ def reject_booking(request, booking_id):
     return redirect('pending_bookings', service_id=booking.service.id)
 
 def user_chats(request):
-    profile = request.user.profile  # Assuming a one-to-one relationship
+    profile = request.user.profile
     customer_chats = Chat.objects.filter(
         booking__customer=profile,
         booking__status='in_progress'

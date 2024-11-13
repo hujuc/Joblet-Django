@@ -2,37 +2,76 @@
 
 {% block content %}
     <div class="flex mt-6">
-        <!-- Sidebar com os filtros (mantido igual) -->
+        <!-- Sidebar com os filtros -->
         <div class="w-1/4 bg-base-300 p-6 rounded-l-lg overflow-y-auto" style="height: calc(100vh - 140px)">
             <h2 class="text-xl font-bold mb-4">Filters</h2>
-            <form method="GET" action="{% url 'services' %}">
+            <form method="GET" action="{% url 'services' %}" class="space-y-6">
                 <!-- Search bar -->
-                <div class="form-control mb-4">
+                <div class="form-control">
                     <label for="search" class="label font-semibold">Search</label>
                     <input
-                            type="text"
-                            name="search"
-                            id="search"
-                            class="input input-bordered"
-                            placeholder="Search for services..."
-                            value="{{ search_query|default:'' }}"
+                        type="text"
+                        name="search"
+                        id="search"
+                        class="input input-bordered"
+                        placeholder="Search for services..."
+                        value="{{ search_query|default:'' }}"
                     />
                 </div>
+
                 <!-- Filter by category -->
-                <div class="form-control mb-4">
-                    <label for="category" class="label font-semibold">Category</label>
-                    <select name="category" id="category" class="select select-bordered">
-                        <option value="0" {% if category_id == "0" %}selected{% endif %}>All Categories</option>
-                        {% for category in categories %}
-                            <option
-                                    value="{{ category.id }}"
-                                    {% if category_id == category.id|stringformat:"s" %}selected{% endif %}
+                <form method="GET" action="{% url 'services' %}" class="space-y-6">
+                    <!-- Hidden input for selected category -->
+                    <input type="hidden" id="category" name="category" value="0" />
+
+                    <!-- Category Dropdown -->
+                    <div class="form-control">
+                        <label for="category" class="label font-semibold">Category</label>
+                        <div class="relative">
+                            <!-- Visible select box -->
+                            <button
+                                id="dropdownButton"
+                                type="button"
+                                class="input input-bordered w-full flex items-center justify-between cursor-pointer"
+                                onclick="toggleDropdown(event)"
                             >
-                                {{ category.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+                                <span id="selectedCategory">
+                                    <i class="fas fa-list"></i> All Categories
+                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+
+                            <!-- Dropdown menu -->
+                            <ul
+                                id="dropdownMenu"
+                                class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full absolute z-10 hidden"
+                            >
+                                <!-- All Categories -->
+                                <li>
+                                    <a href="#" class="flex items-center gap-2" onclick="selectCategory(event, 'All Categories', 'fas fa-list', 0)">
+                                        <i class="fas fa-list"></i>
+                                        <span>All Categories</span>
+                                    </a>
+                                </li>
+                                <!-- Dynamic Categories -->
+                                {% for category in categories %}
+                                    <li>
+                                        <a
+                                            href="#"
+                                            class="flex items-center gap-2"
+                                            onclick="selectCategory(event, '{{ category.name }}', '{{ category.icon }}', {{ category.id }})"
+                                        >
+                                            <i class="{{ category.icon }}"></i>
+                                            <span>{{ category.name }}</span>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
                 <!-- Sort by -->
                 <div class="form-control mb-4">
                     <label for="sort" class="label font-semibold">Sort by</label>
@@ -53,8 +92,8 @@
             {% if services %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {% for service in services %}
-                        <a href="{% url 'service_detail' service.id %}" class="group">
-                            <div class="card bg-base-100 shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                        <a href="{% url 'service_detail' service.id %}" class="group" aria-label="View details of {{ service.title }}">
+                            <div class="card bg-base-100 shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
                                 {% if service.image %}
                                     <img
                                             src="{{ service.image.url }}"
@@ -94,11 +133,12 @@
                                         </span>
                                     </div>
                                 </div>
+
                                 <!-- Service info -->
-                                <div class="p-4">
+                                <div class="p-4 flex flex-col flex-grow">
                                     <h3 class="text-lg font-bold group-hover:text-primary transition-colors duration-300">{{ service.title }}</h3>
-                                    <p class="text-sm text-gray-600 mt-2">{{ service.description|slice:":100" }}...</p>
-                                    <div class="flex justify-between items-center mt-4">
+                                    <p class="text-sm text-gray-600 mt-2 mb-4 line-clamp-2">{{ service.description }}</p>
+                                    <div class="flex justify-between items-center mt-auto">
                                         <span class="text-primary font-semibold">${{ service.price }}</span>
                                         <span class="badge badge-outline">{{ service.category.name }}</span>
                                     </div>
@@ -112,6 +152,41 @@
             {% endif %}
         </div>
     </div>
+<script>
+    // Toggle dropdown visibility
+    function toggleDropdown(event) {
+        event.stopPropagation();
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        dropdownMenu.classList.toggle('hidden');
+    }
+
+    // Select category and update the display text
+    function selectCategory(event, name, iconClass, id) {
+        event.preventDefault();
+
+        // Update the selected category visually
+        const selectedCategory = document.getElementById('selectedCategory');
+        selectedCategory.innerHTML = `<i class="${iconClass}"></i> ${name}`;
+
+        // Close the dropdown menu
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        dropdownMenu.classList.add('hidden');
+
+        // Update the hidden input field to reflect the selected category
+        const categoryInput = document.getElementById('category');
+        if (categoryInput) {
+            categoryInput.value = id;
+        }
+    }
+
+    // Close the dropdown when clicking outside
+    document.addEventListener('click', function () {
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        if (!dropdownMenu.classList.contains('hidden')) {
+            dropdownMenu.classList.add('hidden');
+        }
+    });
+</script>
 {% endblock %}
 
 

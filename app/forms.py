@@ -1,8 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
-from django.utils.timezone import now
 
 from app.models import Profile, Review, Provider, Category, Service, Message, Booking
 
@@ -115,8 +113,8 @@ class ProviderForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        instance = kwargs.get('instance')  # Get the Provider instance
-        if instance and instance.profile:  # Check if the instance has an associated Profile
+        instance = kwargs.get('instance')
+        if instance and instance.profile:
             initial = kwargs.setdefault('initial', {})
             initial['avatar'] = instance.profile.avatar
             initial['phone'] = instance.profile.phone
@@ -124,8 +122,8 @@ class ProviderForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
-        provider = super().save(commit=False)  # Save Provider fields
-        profile = provider.profile  # Access the related Profile instance
+        provider = super().save(commit=False)
+        profile = provider.profile
 
         # Update Profile fields
         profile.avatar = self.cleaned_data.get('avatar')
@@ -133,8 +131,8 @@ class ProviderForm(forms.ModelForm):
         profile.location = self.cleaned_data.get('location')
 
         if commit:
-            profile.save()  # Save Profile
-            provider.save()  # Save Provider
+            profile.save()
+            provider.save()
         return provider
 
 class ReviewForm(forms.ModelForm):
@@ -142,7 +140,7 @@ class ReviewForm(forms.ModelForm):
         model = Review
         fields = ['rating', 'comment']
         widgets = {
-            'rating': forms.HiddenInput(),  # Hide the default rating input
+            'rating': forms.HiddenInput(),
             'comment': forms.Textarea(attrs={'class': 'textarea textarea-bordered w-full', 'rows': 5, 'placeholder': 'Write your review here'}),
         }
 
@@ -153,11 +151,11 @@ class AddBalanceForm(forms.Form):
         label="Amount",
         widget=forms.NumberInput(attrs={
             'id': 'balance_amount',
-            'class': 'input input-bordered w-full',  # Add your desired classes
+            'class': 'input input-bordered w-full',
             'step': '0.01',
             'min': '0',
-            'required': 'required',  # Ensure the field is marked as required
-            'placeholder': 'Enter the amount to add'  # Optional placeholder
+            'required': 'required',
+            'placeholder': 'Enter the amount to add'
         })
     )
 
