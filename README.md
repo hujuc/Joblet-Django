@@ -5,11 +5,14 @@
 Joblet refers to the small, on-demand tasks or gigs that users can post or apply for within the dealicious platform. These joblets are intended to be quick, simple tasks that providers can complete, offering flexibility and convenience to both service providers and customers.
 
 ### Team
-| Número Mecanográfico | Nome          | Email                  |
-|----------------------|---------------|------------------------|
-| 114614               | Martim Santos | santos.martim@ua.pt    |
-| 113889               | Hugo Castro   | hugocastro@ua.pt       |
-| 113786               | Gabriel Silva | gabrielmsilva4@ua.pt   |
+Here is the team involved in the development of Joblet. Click on the GitHub profiles for more information:
+
+| **Número Mecanográfico** | **Nome**          | **Email**                  | **GitHub Profile**                                                                 |
+|---------------------------|-------------------|----------------------------|------------------------------------------------------------------------------------|
+| 114614                    | Martim Santos    | santos.martim@ua.pt       | [GitHub Profile](https://github.com/martimsoutooo)                                |
+| 113889                    | Hugo Castro      | hugocastro@ua.pt          | [GitHub Profile](https://github.com/hujuc)                                  |
+| 113786                    | Gabriel Silva    | gabrielmsilva4@ua.pt      | [GitHub Profile](https://github.com/GabrielMSilva04)                                |
+
 
 ### Tools:
 The project is developed using the following technologies:
@@ -97,3 +100,12 @@ python manage.py runserver {yourport}
 
 #### 11. Open a browser and navigate to `http://localhost:{yourport}`
 #### 12. Enjoy!
+
+### Deployment
+The Joblet application is deployed on PythonAnywhere and can be accessed at:
+
+👉 **[Joblet Deployment](https://joblet.pythonanywhere.com/)**
+
+To deploy the application locally or on a cloud provider, ensure you configure the environment variables and database settings accordingly, as mentioned in the setup guide above.
+
+---
