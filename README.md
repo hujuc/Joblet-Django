@@ -1,5 +1,6 @@
-# Joblet
+# Joblet - Django
 ## First TPW Project
+## Grade Given: 19/20
 
 ### What is Joblet?
 Joblet refers to the small, on-demand tasks or gigs that users can post or apply for within the dealicious platform. These joblets are intended to be quick, simple tasks that providers can complete, offering flexibility and convenience to both service providers and customers.
