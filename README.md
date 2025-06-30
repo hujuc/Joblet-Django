@@ -3,7 +3,7 @@
 ## Grade Given: 19/20
 
 ### What is Joblet?
-Joblet refers to the small, on-demand tasks or gigs that users can post or apply for within the dealicious platform. These joblets are intended to be quick, simple tasks that providers can complete, offering flexibility and convenience to both service providers and customers.
+Joblet refers to the small, on-demand tasks or gigs that users can post or apply for. These joblets are intended to be quick, simple tasks that providers can complete, offering flexibility and convenience to both service providers and customers.
 
 ### Team
 Here is the team involved in the development of Joblet. Click on the GitHub profiles for more information:
